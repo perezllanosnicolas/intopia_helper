@@ -42,6 +42,7 @@ class LSTParser:
                 if vals[5] > 0: ventas_propias[('BR', 'Y', 0)] = vals[5]
 
             # 2. Ventas Propias (A Consumidores - Lujo)
+            # CORRECCIÓN: \s+ para manejar el salto de línea
             match_ventas_lujo = re.search(r'VENTA UNIDADES DE LUJO\s+A CONSUMIDORES\s+(\d+)\.\s+(\d+)\.\s+(\d+)\.\s+(\d+)\.\s+(\d+)\.\s+(\d+)\.', info_block)
             if match_ventas_lujo:
                 vals = list(map(int, match_ventas_lujo.groups()))
@@ -66,6 +67,7 @@ class LSTParser:
                 if vals[5] > 0: inventarios_detalle[('BR', 'Y', 0)] = vals[5]
 
             # 4. Inventarios (Lujo)
+            # CORRECCIÓN: \s+ para manejar el salto de línea
             match_inv_lujo = re.search(r'INVENTARIO FINAL\s+UNIDADES DE LUJO\s+(\d+)\.\s+(\d+)\.\s+(\d+)\.\s+(\d+)\.\s+(\d+)\.\s+(\d+)\.', info_block)
             if match_inv_lujo:
                 vals = list(map(int, match_inv_lujo.groups()))
@@ -86,7 +88,8 @@ class LSTParser:
             match_ventas = re.findall(r'(\d+\.\d{2})', ventas_content) 
             if match_ventas:
                 parsed_data['cuota_mercado'] = sum([float(v) for v in match_ventas])
-                parsed_data['mercado_ventas_totales'] = [float(v) * 1000 for v in match_ventas] # Convertir k a unidades
+                # Convertir k (miles) a unidades
+                parsed_data['mercado_ventas_totales'] = [float(v) * 1000 for v in match_ventas] 
             else:
                 parsed_data['cuota_mercado'] = 0
                 parsed_data['mercado_ventas_totales'] = [0]*6
@@ -96,19 +99,21 @@ class LSTParser:
         match_precios_block = re.search(r'ASESORIA NUMERO 28([\s\S]*?)(?:ASESORIA NUMERO 17|COMPAÑIA\s+\d+\s+ASESORIA NUMERO 17)', content)
         if match_precios_block:
             precios_content = match_precios_block.group(1)
-            # Buscar líneas que empiecen con "COMPA¥IA"
-            matches = re.findall(r'(COMPA¥IA\s+\d+)\s+\.(?:[\s\.]*)((?:\d+\.\s+){12})', precios_content)
+            # CORRECCIÓN: Regex para capturar líneas de compañía y sus 12 valores (incluyendo '0.')
+            matches = re.findall(r'(COMPA¥IA\s+\d+)\s+\.(?:[\s\.]*)((?:[\d\.]+\.\s+){12})', precios_content)
             for match in matches:
                 cia_nombre = match[0].strip()
                 precios_str = match[1].strip().split()
-                precios_num = [float(p.replace('.', '')) for p in precios_str]
+                # Quitar el '.' final y convertir a float
+                precios_num = [float(p[:-1]) for p in precios_str]
                 mercado_precios[cia_nombre] = precios_num
         
         parsed_data['mercado_precios'] = mercado_precios
 
-        # (Quitar datos que ya no son útiles en el print)
+        # --- Imprimir Resumen ---
         print_data = parsed_data.copy()
         print_data.pop('mercado_ventas_totales', None)
         print_data.pop('mercado_precios', None)
+        print_data.pop('ventas_propias', None) # Quitado para brevedad
         print(f"Parsed data from {filepath}: {print_data}")
         return parsed_data

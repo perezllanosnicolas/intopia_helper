@@ -4,27 +4,18 @@ import numpy as np
 # (STD, DEL, STD, DEL, STD, DEL, STD, DEL, STD, DEL, STD, DEL)
 # (CHIP US, PC US, CHIP EU, PC EU, CHIP BR, PC BR)
 COL_MAP = {
-    ('US', 'X', 0): 0,  # US-CHIP-STD
-    ('US', 'X', 1): 1,  # US-CHIP-DEL
-    ('US', 'Y', 0): 2,  # US-PC-STD
-    ('US', 'Y', 1): 3,  # US-PC-DEL
-    ('EU', 'X', 0): 4,  # EU-CHIP-STD
-    ('EU', 'X', 1): 5,  # EU-CHIP-DEL
-    ('EU', 'Y', 0): 6,  # EU-PC-STD
-    ('EU', 'Y', 1): 7,  # EU-PC-DEL
-    ('BR', 'X', 0): 8,  # BR-CHIP-STD
-    ('BR', 'X', 1): 9,  # BR-CHIP-DEL
-    ('BR', 'Y', 0): 10, # BR-PC-STD
-    ('BR', 'Y', 1): 11, # BR-PC-DEL
+    ('US', 'X', 0): 0, ('US', 'X', 1): 1,
+    ('US', 'Y', 0): 2, ('US', 'Y', 1): 3,
+    ('EU', 'X', 0): 4, ('EU', 'X', 1): 5,
+    ('EU', 'Y', 0): 6, ('EU', 'Y', 1): 7,
+    ('BR', 'X', 0): 8, ('BR', 'X', 1): 9,
+    ('BR', 'Y', 0): 10, ('BR', 'Y', 1): 11,
 }
-# Mapeo de Asesoría 3
+# Mapeo de Asesoría 3 (Ventas Totales)
 VENTAS_MAP = {
-    ('US', 'X'): 0,
-    ('US', 'Y'): 1,
-    ('EU', 'X'): 2,
-    ('EU', 'Y'): 3,
-    ('BR', 'X'): 4,
-    ('BR', 'Y'): 5,
+    ('US', 'X'): 0, ('US', 'Y'): 1,
+    ('EU', 'X'): 2, ('EU', 'Y'): 3,
+    ('BR', 'X'): 4, ('BR', 'Y'): 5,
 }
 
 class DemandEstimator:
@@ -34,61 +25,59 @@ class DemandEstimator:
 
     def _extraer_datos(self, historicos):
         datos = {}
-        # Itera sobre todos los archivos LST parseados
+        
         for i, data in enumerate(historicos):
-            periodo = i + 1
+            if not data: continue # Omitir si el parser falló
             
-            # Extraer precios de la Compañía 4 (nuestra compañía)
-            precios_cia_4 = data.get('mercado_precios', {}).get('COMPA¥IA  4', [0]*12)
-            # Extraer ventas de la Compañía 4
-            ventas_cia_4 = data.get('ventas_propias', {})
-            # Extraer ventas totales del mercado (Asesoría 3)
+            precios_mercado = data.get('mercado_precios', {})
             ventas_totales = data.get('mercado_ventas_totales', [0]*6)
-
-            for (area, prod, grado), col_idx in COL_MAP.items():
-                mercado_key = (area, prod, grado)
+            
+            # Iterar sobre los mercados que nos interesan (EU-X, US-Y, etc.)
+            for (area, prod), col_idx in VENTAS_MAP.items():
+                mercado_key = (area, prod) # Clave simplificada: ('EU', 'X')
                 
                 if mercado_key not in datos:
-                    datos[mercado_key] = {'precios': [], 'ventas': []}
+                    datos[mercado_key] = {'precios_avg': [], 'ventas_total': []}
 
-                precio = precios_cia_4[col_idx]
-                # Las ventas propias vienen por (area, prod, grado), ej: ('EU', 'X', 1)
-                ventas = ventas_cia_4.get(mercado_key, 0)
+                # 1. Calcular Precio Promedio del Mercado
+                precios_periodo = []
+                # (Usamos el grado 0 y 1 para el precio promedio del producto)
+                for grado in [0, 1]:
+                    col_precio = COL_MAP.get((area, prod, grado))
+                    if col_precio is None: continue
+                    
+                    for cia, precios in precios_mercado.items():
+                        if precios[col_precio] > 0:
+                            precios_periodo.append(precios[col_precio])
                 
-                # Solo usamos el dato si la compañía vendió (o intentó vender)
-                # O si queremos modelar el mercado total (más complejo)
-                # Por ahora, modelamos NUESTRAS ventas vs NUESTRO precio
-                if precio > 0:
-                    datos[mercado_key]['precios'].append(precio)
-                    datos[mercado_key]['ventas'].append(ventas)
+                if not precios_periodo:
+                    continue # Nadie vendió en este mercado este periodo
+
+                precio_promedio = sum(precios_periodo) / len(precios_periodo)
+                
+                # 2. Obtener Ventas Totales del Mercado
+                ventas_total = ventas_totales[col_idx]
+                
+                if precio_promedio > 0 and ventas_total > 0:
+                    datos[mercado_key]['precios_avg'].append(precio_promedio)
+                    datos[mercado_key]['ventas_total'].append(ventas_total)
                     
         return datos
 
     def _entrenar_modelos(self):
         modelos = {}
         for mercado, data in self.datos_mercado.items():
-            # Necesitamos al menos 2 puntos de datos para una regresión lineal
-            if len(data['precios']) > 1:
+            if len(data['precios_avg']) > 1: # Necesitamos 2+ puntos de datos
                 try:
-                    # m = pendiente (elasticidad), b = intersección
-                    # np.polyfit(X, Y, grado)
-                    m, b = np.polyfit(data['precios'], data['ventas'], 1)
-                    
-                    # Solo guardamos modelos con pendiente negativa (ley de demanda)
-                    if m < 0:
-                        modelos[mercado] = {'pendiente': m, 'interseccion': b, 'puntos_datos': len(data['precios'])}
+                    m, b = np.polyfit(data['precios_avg'], data['ventas_total'], 1)
+                    if m < 0: # Solo guardar si la pendiente es negativa
+                        modelos[mercado] = {'pendiente': m, 'interseccion': b, 'puntos_datos': len(data['precios_avg'])}
                 except np.linalg.LinAlgError:
-                    pass # Error de regresión
+                    pass
         return modelos
 
-    def get_demand_function(self, area, prod, grado):
-        key = (area, prod, int(grado))
-        # Devuelve el modelo aprendido, o un modelo por defecto si no hay datos
-        default_model = {'pendiente': -1.0, 'interseccion': 5000, 'puntos_datos': 0}
-        
-        # Ejemplo: Si no tenemos datos para 'EU-X-1', usamos los de 'EU-X-0'
-        if key not in self.modelos_demanda and grado == 1:
-            key_std = (area, prod, 0)
-            return self.modelos_demanda.get(key_std, default_model)
-            
+    def get_demand_function(self, area, prod):
+        key = (area, prod)
+        # Modelo por defecto si no hay datos
+        default_model = {'pendiente': -100.0, 'interseccion': 50000, 'puntos_datos': 0}
         return self.modelos_demanda.get(key, default_model)

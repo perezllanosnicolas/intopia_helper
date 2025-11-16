@@ -31,7 +31,6 @@ print(f"Última decisión detectada: {os.path.basename(last_file)}")
 # --- PASO 2: Entrenar el Modelo de Demanda ---
 print("\nEntrenando modelo de demanda con datos históricos...")
 estimador = DemandEstimator(datos_historicos)
-# Mostramos el modelo aprendido para el mercado total de 'EU', 'X'
 print(f"Modelo de demanda para ('EU', 'X'): {estimador.get_demand_function('EU', 'X')}")
 
 
@@ -56,35 +55,39 @@ for k, v in current_state_optimizer.items():
 
 # --- PASO 4: Bucle de Optimización (Probar Precios) ---
 
-# CORRECCIÓN: Probar el mercado ('EU', 'X', 0) donde SÍ tenemos inventario.
-# (Tu inventario es: {('EU', 'X', 0): 37000})
 mercados_a_probar = {
-    ('EU', 'X'): [35, 40, 45, 50] # Probar 4 precios para Chips en EU
+    ('EU', 'X'): [35, 40, 45, 50] 
 }
 
 mejor_ranking_total = -float('inf')
 mejor_solucion_final = None
 mejores_precios_final = {}
+mejor_market_conditions = {} # <-- AÑADIR ESTO
 
-# Bucle principal: Itera sobre MERCADOS (EU-X, US-Y, etc.)
+# Bucle principal
 for mercado_key, precios in mercados_a_probar.items():
     area, prod = mercado_key
     
-    # Probar vender como Grado 0 (Estándar) o Grado 1 (Lujo)
     for grado_a_vender in [0, 1]:
         
         for precio_prueba in precios:
             
-            # 1. Obtener función de demanda y calcular demanda para este precio
-            # (Usamos el modelo de mercado total)
             func_demanda = estimador.get_demand_function(area, prod)
-            # Asumimos que podemos capturar 1/11 (aprox 9%) del mercado
             demanda_total_mercado = func_demanda['interseccion'] + (func_demanda['pendiente'] * precio_prueba)
-            demanda_maxima_cia = max(0, int(demanda_total_mercado * 0.09)) 
+            # Asumir que podemos capturar una cuota (ej. 10%) del mercado total
+            demanda_maxima_cia = max(0, int(demanda_total_mercado * 0.10)) 
 
-            # 2. Configurar el optimizador
             optimizer = OptimizerV3(current_state=current_state_optimizer)
             
+            # Crear el dict de condiciones para ESTA iteración
+            market_conditions_actual = {
+                (area, prod, grado_a_vender): {
+                    'precio': precio_prueba,
+                    'demanda': demanda_maxima_cia
+                }
+            }
+            
+            # Pasar las condiciones al optimizador
             optimizer.set_market_conditions(
                 area=area, prod=prod, grado=grado_a_vender, 
                 precio_fijo=precio_prueba, 
@@ -92,16 +95,15 @@ for mercado_key, precios in mercados_a_probar.items():
                 producir_grado=0 # Simplificación: seguimos produciendo solo Grado 0
             )
             
-            # 3. Construir y resolver el modelo
             optimizer.build_model()
             solucion_actual = optimizer.solve()
             ranking_actual = optimizer.get_objective_value()
 
-            # 4. Guardar la mejor solución
             if ranking_actual > mejor_ranking_total:
                 mejor_ranking_total = ranking_actual
                 mejor_solucion_final = solucion_actual
                 mejores_precios_final = {(area, prod, grado_a_vender): precio_prueba}
+                mejor_market_conditions = market_conditions_actual # <-- GUARDAR LAS CONDICIONES
 
 # --- PASO 5: Mostrar Resultados ---
 print("\n--- Solución Óptima Encontrada ---")
@@ -114,9 +116,11 @@ if not mejor_solucion_final:
 else:
     for k, v in mejor_solucion_final.items():
         print(f"{k}: {v}")
-    optimizer.estimate_next_period(mejor_solucion_final, current_state_optimizer)
+    
+    # CORRECCIÓN: Pasar las 'mejor_market_conditions' a la función
+    optimizer.estimate_next_period(mejor_solucion_final, mejor_market_conditions)
 
-# --- PASO 6: Negociación (esto no cambia) ---
+# --- PASO 6: Negociación ---
 current_state_ranking = {
     'beneficio': beneficio,
     'liquidez': liquidez,

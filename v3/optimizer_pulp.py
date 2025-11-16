@@ -35,6 +35,7 @@ class OptimizerV3:
         coste_variable_terms = []
         coste_fijo_terms = []
         inventario_final_terms = []
+        coste_almacen_terms = [] # <-- AÑADIDO: Coste de Inventario
         
         inv_actual_dict = self.current_state.get('inventarios_detalle', {})
 
@@ -52,55 +53,59 @@ class OptimizerV3:
                 vc_rate = 0.155 if prod == 'X' else 0.30
                 coste_variable_terms.append((precio_tipico * vc_rate) * prod_var)
 
-                grado_a_producir = self.production_grade_map.get((area, prod), -1) # -1 = No producir
+                grado_a_producir = self.production_grade_map.get((area, prod), -1)
                 prod_std = prod_var if grado_a_producir == 0 else 0
                 prod_lujo = prod_var if grado_a_producir == 1 else 0
 
                 # Grado 0 (Estándar)
                 key_std = (area, prod, 0)
                 inv_actual_std = inv_actual_dict.get(key_std, 0)
-                ventas_std = self.variables.get(f'ventas_{area}_{prod}_0')
-                inv_final_std = self.variables.get(f'inv_final_{area}_{prod}_0')
+                ventas_std = self.variables[f'ventas_{area}_{prod}_0']
+                inv_final_std = self.variables[f'inv_final_{area}_{prod}_0']
                 
                 cond_std = self.market_conditions.get(key_std)
-                if ventas_std is not None:
-                    if cond_std: # Si estamos probando este mercado
-                        self.model += ventas_std <= cond_std['demanda']
-                        self.model += ventas_std <= inv_actual_std + prod_std
-                        ingreso_terms.append(cond_std['precio'] * ventas_std)
-                    else:
-                        self.model += ventas_std == 0
-                    
-                    if inv_final_std is not None:
-                        self.model += inv_final_std == inv_actual_std + prod_std - ventas_std
-                        inventario_final_terms.append(inv_final_std)
+                if cond_std:
+                    self.model += ventas_std <= cond_std['demanda']
+                    self.model += ventas_std <= inv_actual_std + prod_std
+                    ingreso_terms.append(cond_std['precio'] * ventas_std)
+                else:
+                    self.model += ventas_std == 0
+                
+                self.model += inv_final_std == inv_actual_std + prod_std - ventas_std
+                inventario_final_terms.append(inv_final_std)
+                # AÑADIDO: Añadir coste de almacenamiento para este inventario final
+                coste_almacen_terms.append(inv_final_std * ALMACEN_MIN[area][prod])
 
                 # Grado 1 (Lujo)
                 key_lujo = (area, prod, 1)
                 inv_actual_lujo = inv_actual_dict.get(key_lujo, 0)
-                ventas_lujo = self.variables.get(f'ventas_{area}_{prod}_1')
-                inv_final_lujo = self.variables.get(f'inv_final_{area}_{prod}_1')
+                ventas_lujo = self.variables[f'ventas_{area}_{prod}_1']
+                inv_final_lujo = self.variables[f'inv_final_{area}_{prod}_1']
 
                 cond_lujo = self.market_conditions.get(key_lujo)
-                if ventas_lujo is not None:
-                    if cond_lujo:
-                        self.model += ventas_lujo <= cond_lujo['demanda']
-                        self.model += ventas_lujo <= inv_actual_lujo + prod_lujo
-                        ingreso_terms.append(cond_lujo['precio'] * ventas_lujo)
-                    else:
-                        self.model += ventas_lujo == 0
+                if cond_lujo:
+                    self.model += ventas_lujo <= cond_lujo['demanda']
+                    self.model += ventas_lujo <= inv_actual_lujo + prod_lujo
+                    ingreso_terms.append(cond_lujo['precio'] * ventas_lujo)
+                else:
+                    self.model += ventas_lujo == 0
                     
-                    if inv_final_lujo is not None:
-                        self.model += inv_final_lujo == inv_actual_lujo + prod_lujo - ventas_lujo
-                        inventario_final_terms.append(inv_final_lujo)
+                self.model += inv_final_lujo == inv_actual_lujo + prod_lujo - ventas_lujo
+                inventario_final_terms.append(inv_final_lujo)
+                # AÑADIDO: Añadir coste de almacenamiento (mismo coste para ambos grados)
+                coste_almacen_terms.append(inv_final_lujo * ALMACEN_MIN[area][prod])
+
 
         # --- Función Objetivo (Ranking) ---
         ingreso_total_periodo = pulp.lpSum(ingreso_terms)
         coste_variable_total = pulp.lpSum(coste_variable_terms)
         coste_fijo_total = pulp.lpSum(coste_fijo_terms)
+        coste_almacen_total = pulp.lpSum(coste_almacen_terms) # <-- AÑADIDO
         penalizacion_inactividad = pulp.lpSum([1 - self.variables[f'open_{area}_{prod}'] for area in AREAS for prod in ['X','Y']]) * 1000
 
-        beneficio_periodo = ingreso_total_periodo - coste_variable_total - coste_fijo_total - penalizacion_inactividad
+        # AÑADIDO: Restar coste de almacén del beneficio
+        beneficio_periodo = ingreso_total_periodo - coste_variable_total - coste_fijo_total - coste_almacen_total - penalizacion_inactividad
+        
         liquidez_periodo = beneficio_periodo * 0.5 
         cuota_periodo = ingreso_total_periodo * 0.01
         inventarios_total_final = pulp.lpSum(inventario_final_terms)
@@ -126,15 +131,11 @@ class OptimizerV3:
         return solution
 
     def get_objective_value(self):
-        # Manejar el caso de que no se encuentre solución
         if self.model.objective:
             return self.model.objective.value()
         return -float('inf')
 
-    def summarize_current_state(self):
-        pass # quickstart_v3 se encarga de esto
-
-    def estimate_next_period(self, solution, market_conditions): # <-- CORRECCIÓN
+    def estimate_next_period(self, solution, market_conditions):
         print("\nEstimación del siguiente periodo si aplicamos decisiones:")
         
         ingreso_estimado = 0
@@ -143,7 +144,6 @@ class OptimizerV3:
             if k.startswith('ventas_'):
                 parts = k.split('_')
                 key = (parts[1], parts[2], int(parts[3]))
-                # CORRECCIÓN: Usar el dict market_conditions que se pasó como argumento
                 precio_fijo = market_conditions.get(key, {}).get('precio', 0)
                 ingreso_estimado += precio_fijo * v
             

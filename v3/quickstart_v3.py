@@ -1,10 +1,11 @@
 import os
 import glob
+import re  # <--- ¡AÑADE ESTA LÍNEA!
 from v3.optimizer_pulp import OptimizerV3
 from v3.negotiation import Negotiation
 from v3.ranking import calculate_ranking
 from src.parser import LSTParser
-from v3.demand_estimator import DemandEstimator # <-- IMPORTANTE: El nuevo archivo
+from v3.demand_estimator import DemandEstimator
 
 # --- PASO 1: Cargar todos los datos históricos ---
 
@@ -16,7 +17,8 @@ DATA_DIR = os.path.join(os.getcwd(), 'data')
 files = sorted(
     glob.glob(os.path.join(DATA_DIR, 'Decisión [0-9].lst.txt')) + 
     glob.glob(os.path.join(DATA_DIR, 'Descisión [0-9].lst.txt')),
-    key=lambda x: int(re.search(r'[Dd]ecisión (\d+)', x).group(1))
+    # Esta línea ahora funcionará porque 're' está importado
+    key=lambda x: int(re.search(r'[Dd]ecisión (\d+)', x).group(1)) 
 )
 
 if not files:

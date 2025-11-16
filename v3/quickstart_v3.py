@@ -151,20 +151,31 @@ print(f"Modelo de demanda para ('EU', 'Y', 1): {modelo_eu_y1}")
 # --- PASO 3: Preparar Estado Actual ---
 beneficio = current_state_parsed.get('utilidad_periodo', 0)
 liquidez = current_state_parsed.get('caja_total', 0)
-inventarios = current_state_parsed.get('inventarios_detalle', {}) 
-cuota = current_state_parsed.get('cuota_mercado', 0)
-inventarios_total = sum(v for v in inventarios.values() if v)
+inventarios_detalle = current_state_parsed.get('inventarios_detalle', {}) 
+
+# CORRECCIÓN: Usar ventas propias (ver Problema 3)
+ventas_propias_total = sum(current_state_parsed.get('ventas_propias', {}).values())
+
+inventarios_total = sum(v for v in inventarios_detalle.values() if v)
+
+# CORRECCIÓN: Definir valores base para normalizar (ajusta estos valores)
+BASE_BENEFICIO = 500000.0  # Un beneficio "bueno" esperado
+BASE_LIQUIDEZ = 20000000.0 # Una liquidez "normal"
+BASE_INVENTARIO = 100000.0 # Un inventario "normal"
+BASE_CUOTA = 150000.0      # Ventas propias "buenas" (en unidades)
 
 current_state_optimizer = {
-    'beneficio': beneficio,
-    'liquidez': liquidez,
-    'inventarios_detalle': inventarios,
-    'inventarios_total': inventarios_total,
-    'cuota': cuota
+    'beneficio': beneficio / BASE_BENEFICIO,
+    'liquidez': liquidez / BASE_LIQUIDEZ,
+    'inventarios_detalle': inventarios_detalle, # El optimizador necesita el detalle real
+    'inventarios_total': inventarios_total / BASE_INVENTARIO,
+    'cuota': ventas_propias_total / BASE_CUOTA # Usar ventas propias normalizadas
 }
-print("\nResumen del estado actual:")
+
+print("\nResumen del estado actual (NORMALIZADO):") # Añadido para depuración
 for k, v in current_state_optimizer.items():
-    print(f"{k}: {v}")
+    if k != 'inventarios_detalle':
+         print(f"{k}: {v}")
 
 # --- PASO 4: Comparar Estrategias ---
 print("\n--- Evaluando Estrategias de Mercado ---")

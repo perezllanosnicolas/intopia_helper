@@ -110,7 +110,8 @@ class LSTParser:
                     
                     # Encontrar todos los números (enteros o '0') en el resto de la línea
                     # Esta regex busca cualquier grupo de dígitos o espacios, seguido de un punto
-                    numeros_str = re.findall(r'([\s\d]*)\.', line[len(cia_match.group(0)):])
+                    # CÓDIGO CORREGIDO
+                    numeros_str = re.findall(r'(\s*[\d]+)\.', line[len(cia_match.group(0)):])
                     
                     if len(numeros_str) == 12:
                         # Limpiar espacios y convertir a float (' ' o '' se vuelve '0')

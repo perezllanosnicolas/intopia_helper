@@ -40,7 +40,7 @@ class DemandEstimator:
                 # 1. Calcular Precio Promedio del Mercado PARA ESE GRADO
                 precios_periodo_grado = []
                 for cia, precios in precios_mercado_periodo.items():
-                    if len(precios) == 12 and precios[col_precio] > 0: # Asegurarse que la lista de precios está completa
+                    if len(precios) == 12 and precios[col_precio] > 0:
                         precios_periodo_grado.append(precios[col_precio])
                 
                 if not precios_periodo_grado:
@@ -54,8 +54,6 @@ class DemandEstimator:
                 
                 ventas_total_prod = ventas_totales_producto_periodo[col_ventas]
                 
-                # 3. Usar Ventas Totales del Producto como proxy para la demanda de este grado
-                #    (Es una simplificación, pero mejor que nada)
                 if precio_promedio_grado > 0 and ventas_total_prod > 0:
                     datos[mercado_key_grado]['precios_avg'].append(precio_promedio_grado)
                     datos[mercado_key_grado]['ventas_total_proxy'].append(ventas_total_prod)
@@ -66,11 +64,12 @@ class DemandEstimator:
         modelos = {}
         for mercado_key_grado, data in self.datos_mercado.items():
             
-            # CORRECCIÓN: Bajar a 2 puntos de datos si la varianza es > 0
+            # *** CORRECCIÓN DE LÓGICA AQUÍ ***
+            # Requerir solo 2 puntos de datos (en lugar de 3)
             if len(data['precios_avg']) >= 2 and np.var(data['precios_avg']) > 0:
                 try:
                     m, b = np.polyfit(data['precios_avg'], data['ventas_total_proxy'], 1)
-                    if m < 0: # Solo guardar si la pendiente es negativa
+                    if m < 0: 
                         modelos[mercado_key_grado] = {'pendiente': m, 'interseccion': b, 'puntos_datos': len(data['precios_avg'])}
                 except np.linalg.LinAlgError:
                     pass
@@ -85,7 +84,6 @@ class DemandEstimator:
         if modelo_encontrado:
             return modelo_encontrado
         else:
-            # Si no hay modelo para este grado, probar el grado opuesto
             grado_opuesto = 1 - int(grado)
             key_opuesto = (area, prod, grado_opuesto)
             return self.modelos_demanda.get(key_opuesto, default_model)

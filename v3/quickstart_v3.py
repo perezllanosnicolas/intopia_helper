@@ -9,6 +9,10 @@ from src.parser import LSTParser
 from v3.demand_estimator import DemandEstimator 
 
 def load_ranking_data(data_dir, historicos_parseados):
+    """
+    Carga los archivos Ranking X.txt, los parsea y los alinea con
+    los datos parseados del LST correspondiente.
+    """
     ranking_data = []
     ranking_files = glob.glob(os.path.join(data_dir, 'Ranking [0-9].txt'))
     
@@ -22,12 +26,15 @@ def load_ranking_data(data_dir, historicos_parseados):
                 estado_lst = historicos_parseados[periodo - 1]
                 with open(r_file, 'r') as f:
                     reader = csv.reader(f, delimiter=';')
-                    next(reader) 
+                    next(reader) # Saltar cabecera
                     for row in reader:
                         if not row or len(row) < 2: continue
-                        if int(row[0].strip()) == 4:
-                            score_str = row[1].strip().replace("'", ".")
+                        
+                        if int(row[0].strip()) == 4: # Asumimos ID=4
+                            # El formato es 0'2620339, la comilla es el decimal.
+                            score_str = row[1].strip().replace("'", ".") 
                             score = float(score_str)
+                            
                             ranking_data.append({
                                 'periodo': periodo,
                                 'score': score,
@@ -49,13 +56,17 @@ def find_best_strategy(current_state, estimador, markets_to_test, production_con
     mejores_precios = {}
     mejor_market_cond = {}
 
+    # Itera sobre los mercados a probar (ej. ('EU', 'Y', 0))
     for mercado_key, precios in markets_to_test.items():
         area, prod, grado = mercado_key
         
         for precio_prueba in precios:
+            # Obtiene la función de demanda para este mercado específico
             func_demanda = estimador.get_demand_function(area, prod, grado)
+            
             demanda_total_mercado = func_demanda['interseccion'] + (func_demanda['pendiente'] * precio_prueba)
-            demanda_maxima_cia = max(0, int(demanda_total_mercado * 0.10)) # Asumir 10% cuota
+            # Asumir que podemos capturar una cuota (ej. 10%) del mercado total
+            demanda_maxima_cia = max(0, int(demanda_total_mercado * 0.10)) 
 
             optimizer = OptimizerV3(current_state=current_state)
             
@@ -63,7 +74,7 @@ def find_best_strategy(current_state, estimador, markets_to_test, production_con
                 mercado_key: { 'precio': precio_prueba, 'demanda': demanda_maxima_cia }
             }
             
-            # Aplicar configuración de producción
+            # Aplicar configuración de producción (qué grado producir)
             for (p_area, p_prod), p_grado in production_config.items():
                  optimizer.set_market_conditions(
                     area=p_area, prod=p_prod, grado=p_grado, 
@@ -122,7 +133,7 @@ beneficio = current_state_parsed.get('utilidad_periodo', 0)
 liquidez = current_state_parsed.get('caja_total', 0)
 inventarios = current_state_parsed.get('inventarios_detalle', {}) 
 cuota = current_state_parsed.get('cuota_mercado', 0)
-inventarios_total = sum(v for v in inventarios.values() if v) # Suma robusta
+inventarios_total = sum(v for v in inventarios.values() if v)
 
 current_state_optimizer = {
     'beneficio': beneficio,
@@ -140,11 +151,9 @@ for k, v in current_state_optimizer.items():
 print("\n--- Evaluando Estrategias de Mercado ---")
 
 # Estrategia 1: Vender el stock existente en ('EU', 'X', 0)
-# (Tu stock actual es: {('EU', 'X', 0): 37000})
 mercados_stock = {
-    ('EU', 'X', 0): [35, 40, 45, 50] # Probar precios para el stock
+    ('EU', 'X', 0): [35, 40, 45, 50]
 }
-# Configuración: No producir nada
 prod_config_stock = { ('EU', 'X'): -1 } # -1 = No Producir
 
 ranking_stock, precios_stock, sol_stock, cond_stock = find_best_strategy(
@@ -155,10 +164,9 @@ print(f"Resultado Estrategia 'Vender Stock': Ranking Estimado = {ranking_stock:.
 
 # Estrategia 2: Abrir un nuevo mercado de PCs en EU
 mercados_nuevos = {
-    ('EU', 'Y', 0): [130, 140, 150] # Probar precios para PCs Estándar en EU
+    ('EU', 'Y', 0): [130, 140, 150] # Precios típicos para PC en EU (fuente: 448)
 }
-# Configuración: Producir Grado 0 de PCs en EU
-prod_config_nuevos = { ('EU', 'Y'): 0 } 
+prod_config_nuevos = { ('EU', 'Y'): 0 } # Producir Grado 0 de PCs en EU
 
 ranking_nuevo, precios_nuevo, sol_nuevo, cond_nuevo = find_best_strategy(
     current_state_optimizer, estimador, mercados_nuevos, prod_config_nuevos
@@ -189,8 +197,11 @@ if not mejor_solucion_final:
 else:
     for k, v in mejor_solucion_final.items():
         print(f"{k}: {v}")
-    optimizer.estimate_next_period(mejor_solucion_final, mejor_market_conditions)
-
+    
+    # *** CORRECCIÓN DEL BUG "NameError" ***
+    # Creamos una instancia de Optimizer solo para llamar a estimate_next_period
+    optimizer_estimador = OptimizerV3(current_state=current_state_optimizer)
+    optimizer_estimador.estimate_next_period(mejor_solucion_final, mejor_market_conditions)
 
 # --- PASO 6: Negociación ---
 current_state_ranking = {

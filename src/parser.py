@@ -42,7 +42,6 @@ class LSTParser:
                 if vals[5] > 0: ventas_propias[('BR', 'Y', 0)] = vals[5]
 
             # 2. Ventas Propias (A Consumidores - Lujo)
-            # CORRECCIÓN: \s+ para manejar el salto de línea
             match_ventas_lujo = re.search(r'VENTA UNIDADES DE LUJO\s+A CONSUMIDORES\s+(\d+)\.\s+(\d+)\.\s+(\d+)\.\s+(\d+)\.\s+(\d+)\.\s+(\d+)\.', info_block)
             if match_ventas_lujo:
                 vals = list(map(int, match_ventas_lujo.groups()))
@@ -67,7 +66,6 @@ class LSTParser:
                 if vals[5] > 0: inventarios_detalle[('BR', 'Y', 0)] = vals[5]
 
             # 4. Inventarios (Lujo)
-            # CORRECCIÓN: \s+ para manejar el salto de línea
             match_inv_lujo = re.search(r'INVENTARIO FINAL\s+UNIDADES DE LUJO\s+(\d+)\.\s+(\d+)\.\s+(\d+)\.\s+(\d+)\.\s+(\d+)\.\s+(\d+)\.', info_block)
             if match_inv_lujo:
                 vals = list(map(int, match_inv_lujo.groups()))
@@ -85,22 +83,26 @@ class LSTParser:
         match_ventas_block = re.search(r'ASESORIA NUMERO 3([\s\S]*?)(?:ASESORIA NUMERO 28|COMPAÑIA\s+\d+\s+ASESORIA NUMERO 28)', content)
         if match_ventas_block:
             ventas_content = match_ventas_block.group(1)
-            match_ventas = re.findall(r'(\d+\.\d{2})', ventas_content) 
-            if match_ventas:
+            
+            # CORRECCIÓN: r'(\d*\.\d{2})' para que coincida con '.00' y '37.38'
+            match_ventas = re.findall(r'(\d*\.\d{2})', ventas_content) 
+            
+            if match_ventas and len(match_ventas) == 6: # Asegurarse de que encontró los 6 valores
                 parsed_data['cuota_mercado'] = sum([float(v) for v in match_ventas])
-                # Convertir k (miles) a unidades
-                parsed_data['mercado_ventas_totales'] = [float(v) * 1000 for v in match_ventas] 
+                parsed_data['mercado_ventas_totales'] = [float(v) * 1000 for v in match_ventas] # Convertir k a unidades
             else:
                 parsed_data['cuota_mercado'] = 0
-                parsed_data['mercado_ventas_totales'] = [0]*6
+                parsed_data['mercado_ventas_totales'] = [0]*6 # Default si falla
         
         # --- Bloque 5: ASESORIA NUMERO 28 (Precios de Mercado) ---
         mercado_precios = {}
         match_precios_block = re.search(r'ASESORIA NUMERO 28([\s\S]*?)(?:ASESORIA NUMERO 17|COMPAÑIA\s+\d+\s+ASESORIA NUMERO 17)', content)
         if match_precios_block:
             precios_content = match_precios_block.group(1)
-            # CORRECCIÓN: Regex para capturar líneas de compañía y sus 12 valores (incluyendo '0.')
-            matches = re.findall(r'(COMPA¥IA\s+\d+)\s+\.(?:[\s\.]*)((?:[\d\.]+\.\s+){12})', precios_content)
+            
+            # CORRECCIÓN: r'((?:[\s\d]*\.\s+){12})' para que coincida con ' 0.' y ' 35.'
+            matches = re.findall(r'(COMPA¥IA\s+\d+)\s+\.(?:[\s\.]*)((?:[\s\d]*\.\s+){12})', precios_content)
+            
             for match in matches:
                 cia_nombre = match[0].strip()
                 precios_str = match[1].strip().split()
@@ -114,6 +116,6 @@ class LSTParser:
         print_data = parsed_data.copy()
         print_data.pop('mercado_ventas_totales', None)
         print_data.pop('mercado_precios', None)
-        print_data.pop('ventas_propias', None) # Quitado para brevedad
+        print_data.pop('ventas_propias', None)
         print(f"Parsed data from {filepath}: {print_data}")
         return parsed_data

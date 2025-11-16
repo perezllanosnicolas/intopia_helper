@@ -78,10 +78,12 @@ class LSTParser:
             
             parsed_data['inventarios_detalle'] = inventarios_detalle
 
+
         # --- Bloque 4: ASESORIA NUMERO 3 (Cuota de Mercado y Ventas Totales) ---
         match_ventas_block = re.search(r'ASESORIA NUMERO 3([\s\S]*?)(?:ASESORIA NUMERO 28|COMPAÑIA\s+\d+\s+ASESORIA NUMERO 28)', content)
         if match_ventas_block:
             ventas_content = match_ventas_block.group(1)
+            
             match_ventas = re.findall(r'(\d*\.\d{2})', ventas_content) 
             
             if match_ventas and len(match_ventas) == 6:
@@ -97,16 +99,19 @@ class LSTParser:
         if match_precios_block:
             precios_content = match_precios_block.group(1)
             
-            # *** CORRECCIÓN DE REGEX AQUÍ ***
-            # La regex anterior era 'r'(COMPA¥IA\s+\d+)\s+\.(?:[\s\.]*)((?:[\s\d]*\.\s+){12})''
-            # La regex correcta no debe consumir los primeros puntos.
-            matches = re.findall(r'(COMPA¥IA\s+\d+)\s+((?:[\s\d]*\.\s+){12})', precios_content)
+            # CORRECCIÓN: Regex mejorada para que maneje saltos de línea y encuentre los 12 valores
+            matches = re.findall(r'(COMPA¥IA\s+\d+).*?((?:[\s\d]*\.\s+){12})', precios_content, re.DOTALL)
             
             for match in matches:
                 cia_nombre = match[0].strip()
-                precios_str = match[1].strip().split() 
-                # Quitar el '.' final y convertir a float
-                precios_num = [float(p[:-1]) for p in precios_str]
+                precios_str = match[1].strip().split()
+                
+                # CORRECCIÓN: Lógica robusta para convertir a float
+                # p.strip()[:-1] -> ' .' se convierte en '.' y luego en ''
+                # or '0' -> convierte '' en '0'
+                # float('0') -> 0.0
+                precios_num = [float(p.strip()[:-1] or '0') for p in precios_str]
+                
                 mercado_precios[cia_nombre] = precios_num
         
         parsed_data['mercado_precios'] = mercado_precios

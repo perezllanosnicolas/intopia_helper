@@ -9,7 +9,6 @@ class OptimizerV3:
         self.variables = {}
         self.market_conditions = {} 
         self.production_grade_map = {}
-        # Nuevos: Costes fijos de la estrategia
         self.coste_publicidad_total = 0
         self.coste_ID_total = 0
         self.coste_informes_total = 0
@@ -20,12 +19,10 @@ class OptimizerV3:
             'precio': precio_fijo,
             'demanda': demanda_maxima
         }
-        # Guardamos qué grado se va a producir
-        if producir_grado != -1: # -1 significa no producir
+        if producir_grado != -1: 
             self.production_grade_map[(area, prod)] = int(producir_grado)
 
     def set_strategy_costs(self, coste_publicidad=0, coste_ID=0, coste_informes=0):
-        # Recibe los costes de la estrategia (Formulario H1 y A1)
         self.coste_publicidad_total = coste_publicidad
         self.coste_ID_total = coste_ID
         self.coste_informes_total = coste_informes
@@ -108,6 +105,27 @@ class OptimizerV3:
                         self.model += inv_final_lujo == inv_actual_lujo + prod_lujo - ventas_lujo
                         inventario_final_terms.append(inv_final_lujo)
                         coste_almacen_terms.append(inv_final_lujo * ALMACEN_MIN[area][prod])
+        
+        # *** CORRECCIÓN DE LÓGICA: Dependencia X -> Y ***
+        # Asumir que 1 PC (Y) requiere 1 Chip (X)
+        for area in AREAS:
+            prod_Y_total = self.variables[f'prod_{area}_Y']
+            
+            # Chips Disponibles = Stock + Producción de Chips
+            inv_X_std = inv_actual_dict.get((area, 'X', 0), 0)
+            inv_X_lujo = inv_actual_dict.get((area, 'X', 1), 0)
+            inv_X_total = inv_X_std + inv_X_lujo
+            
+            prod_X_total = self.variables[f'prod_{area}_X']
+            
+            # Chips Vendidos (que no se pueden usar para PCs)
+            ventas_X_std = self.variables[f'ventas_{area}_X_0']
+            ventas_X_lujo = self.variables[f'ventas_{area}_X_1']
+            ventas_X_total = ventas_X_std + ventas_X_lujo
+            
+            # Restricción: La producción de PCs no puede exceder los chips disponibles
+            # (después de restar las ventas directas de chips)
+            self.model += prod_Y_total <= (inv_X_total + prod_X_total - ventas_X_total)
 
 
         # --- Función Objetivo (Ranking) ---
@@ -122,9 +140,9 @@ class OptimizerV3:
             - coste_variable_total 
             - coste_fijo_total 
             - coste_almacen_total
-            - self.coste_publicidad_total  # <-- Coste de Estrategia
-            - self.coste_ID_total          # <-- Coste de Estrategia
-            - self.coste_informes_total    # <-- Coste de Estrategia
+            - self.coste_publicidad_total
+            - self.coste_ID_total
+            - self.coste_informes_total
             - penalizacion_inactividad
         )
         

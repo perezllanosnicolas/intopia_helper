@@ -80,7 +80,6 @@ class LSTParser:
             
             parsed_data['inventarios_detalle'] = inventarios_detalle
 
-
         # --- Bloque 4: ASESORIA NUMERO 3 (Cuota de Mercado y Ventas Totales) ---
         match_ventas_block = re.search(r'ASESORIA NUMERO 3([\s\S]*?)(?:ASESORIA NUMERO 28|COMPAÑIA\s+\d+\s+ASESORIA NUMERO 28)', content)
         if match_ventas_block:

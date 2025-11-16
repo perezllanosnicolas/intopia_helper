@@ -30,7 +30,6 @@ class DemandEstimator:
             precios_mercado_periodo = data.get('mercado_precios', {})
             ventas_totales_producto_periodo = data.get('mercado_ventas_totales', [0]*6)
             
-            # Iterar por CADA GRADO (ej. 'EU', 'X', 0)
             for mercado_key_grado, col_precio in COL_MAP.items():
                 area, prod, grado = mercado_key_grado
                 
@@ -44,13 +43,14 @@ class DemandEstimator:
                         precios_periodo_grado.append(precios[col_precio])
                 
                 if not precios_periodo_grado:
-                    continue # Nadie vendió este grado en este periodo
+                    continue 
 
                 precio_promedio_grado = sum(precios_periodo_grado) / len(precios_periodo_grado)
                 
                 # 2. Obtener Ventas Totales del PRODUCTO (de Asesoria 3)
                 col_ventas = VENTAS_MAP.get((area, prod))
-                if col_ventas is None: continue
+                if col_ventas is None or col_ventas >= len(ventas_totales_producto_periodo):
+                    continue
                 
                 ventas_total_prod = ventas_totales_producto_periodo[col_ventas]
                 
@@ -64,8 +64,6 @@ class DemandEstimator:
         modelos = {}
         for mercado_key_grado, data in self.datos_mercado.items():
             
-            # *** CORRECCIÓN DE LÓGICA AQUÍ ***
-            # Requerir solo 2 puntos de datos (en lugar de 3)
             if len(data['precios_avg']) >= 2 and np.var(data['precios_avg']) > 0:
                 try:
                     m, b = np.polyfit(data['precios_avg'], data['ventas_total_proxy'], 1)

@@ -9,6 +9,10 @@ class OptimizerV3:
         self.variables = {}
         self.market_conditions = {} 
         self.production_grade_map = {}
+        # Nuevos: Costes fijos de la estrategia
+        self.coste_publicidad_total = 0
+        self.coste_ID_total = 0
+        self.coste_informes_total = 0
 
     def set_market_conditions(self, area, prod, grado, precio_fijo, demanda_maxima, producir_grado):
         key = (area, prod, int(grado))
@@ -16,7 +20,15 @@ class OptimizerV3:
             'precio': precio_fijo,
             'demanda': demanda_maxima
         }
-        self.production_grade_map[(area, prod)] = int(producir_grado)
+        # Guardamos qué grado se va a producir
+        if producir_grado != -1: # -1 significa no producir
+            self.production_grade_map[(area, prod)] = int(producir_grado)
+
+    def set_strategy_costs(self, coste_publicidad=0, coste_ID=0, coste_informes=0):
+        # Recibe los costes de la estrategia (Formulario H1 y A1)
+        self.coste_publicidad_total = coste_publicidad
+        self.coste_ID_total = coste_ID
+        self.coste_informes_total = coste_informes
 
     def build_model(self):
         
@@ -35,7 +47,7 @@ class OptimizerV3:
         coste_variable_terms = []
         coste_fijo_terms = []
         inventario_final_terms = []
-        coste_almacen_terms = [] # <-- AÑADIDO: Coste de Inventario
+        coste_almacen_terms = [] 
         
         inv_actual_dict = self.current_state.get('inventarios_detalle', {})
 
@@ -60,51 +72,61 @@ class OptimizerV3:
                 # Grado 0 (Estándar)
                 key_std = (area, prod, 0)
                 inv_actual_std = inv_actual_dict.get(key_std, 0)
-                ventas_std = self.variables[f'ventas_{area}_{prod}_0']
-                inv_final_std = self.variables[f'inv_final_{area}_{prod}_0']
+                ventas_std = self.variables.get(f'ventas_{area}_{prod}_0')
+                inv_final_std = self.variables.get(f'inv_final_{area}_{prod}_0')
                 
                 cond_std = self.market_conditions.get(key_std)
-                if cond_std:
-                    self.model += ventas_std <= cond_std['demanda']
-                    self.model += ventas_std <= inv_actual_std + prod_std
-                    ingreso_terms.append(cond_std['precio'] * ventas_std)
-                else:
-                    self.model += ventas_std == 0
-                
-                self.model += inv_final_std == inv_actual_std + prod_std - ventas_std
-                inventario_final_terms.append(inv_final_std)
-                # AÑADIDO: Añadir coste de almacenamiento para este inventario final
-                coste_almacen_terms.append(inv_final_std * ALMACEN_MIN[area][prod])
+                if ventas_std is not None:
+                    if cond_std:
+                        self.model += ventas_std <= cond_std['demanda']
+                        self.model += ventas_std <= inv_actual_std + prod_std
+                        ingreso_terms.append(cond_std['precio'] * ventas_std)
+                    else:
+                        self.model += ventas_std == 0
+                    
+                    if inv_final_std is not None:
+                        self.model += inv_final_std == inv_actual_std + prod_std - ventas_std
+                        inventario_final_terms.append(inv_final_std)
+                        coste_almacen_terms.append(inv_final_std * ALMACEN_MIN[area][prod])
 
                 # Grado 1 (Lujo)
                 key_lujo = (area, prod, 1)
                 inv_actual_lujo = inv_actual_dict.get(key_lujo, 0)
-                ventas_lujo = self.variables[f'ventas_{area}_{prod}_1']
-                inv_final_lujo = self.variables[f'inv_final_{area}_{prod}_1']
+                ventas_lujo = self.variables.get(f'ventas_{area}_{prod}_1')
+                inv_final_lujo = self.variables.get(f'inv_final_{area}_{prod}_1')
 
                 cond_lujo = self.market_conditions.get(key_lujo)
-                if cond_lujo:
-                    self.model += ventas_lujo <= cond_lujo['demanda']
-                    self.model += ventas_lujo <= inv_actual_lujo + prod_lujo
-                    ingreso_terms.append(cond_lujo['precio'] * ventas_lujo)
-                else:
-                    self.model += ventas_lujo == 0
+                if ventas_lujo is not None:
+                    if cond_lujo:
+                        self.model += ventas_lujo <= cond_lujo['demanda']
+                        self.model += ventas_lujo <= inv_actual_lujo + prod_lujo
+                        ingreso_terms.append(cond_lujo['precio'] * ventas_lujo)
+                    else:
+                        self.model += ventas_lujo == 0
                     
-                self.model += inv_final_lujo == inv_actual_lujo + prod_lujo - ventas_lujo
-                inventario_final_terms.append(inv_final_lujo)
-                # AÑADIDO: Añadir coste de almacenamiento (mismo coste para ambos grados)
-                coste_almacen_terms.append(inv_final_lujo * ALMACEN_MIN[area][prod])
+                    if inv_final_lujo is not None:
+                        self.model += inv_final_lujo == inv_actual_lujo + prod_lujo - ventas_lujo
+                        inventario_final_terms.append(inv_final_lujo)
+                        coste_almacen_terms.append(inv_final_lujo * ALMACEN_MIN[area][prod])
 
 
         # --- Función Objetivo (Ranking) ---
         ingreso_total_periodo = pulp.lpSum(ingreso_terms)
         coste_variable_total = pulp.lpSum(coste_variable_terms)
         coste_fijo_total = pulp.lpSum(coste_fijo_terms)
-        coste_almacen_total = pulp.lpSum(coste_almacen_terms) # <-- AÑADIDO
+        coste_almacen_total = pulp.lpSum(coste_almacen_terms)
         penalizacion_inactividad = pulp.lpSum([1 - self.variables[f'open_{area}_{prod}'] for area in AREAS for prod in ['X','Y']]) * 1000
 
-        # AÑADIDO: Restar coste de almacén del beneficio
-        beneficio_periodo = ingreso_total_periodo - coste_variable_total - coste_fijo_total - coste_almacen_total - penalizacion_inactividad
+        beneficio_periodo = (
+            ingreso_total_periodo 
+            - coste_variable_total 
+            - coste_fijo_total 
+            - coste_almacen_total
+            - self.coste_publicidad_total  # <-- Coste de Estrategia
+            - self.coste_ID_total          # <-- Coste de Estrategia
+            - self.coste_informes_total    # <-- Coste de Estrategia
+            - penalizacion_inactividad
+        )
         
         liquidez_periodo = beneficio_periodo * 0.5 
         cuota_periodo = ingreso_total_periodo * 0.01

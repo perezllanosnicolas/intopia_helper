@@ -47,85 +47,100 @@ class OptimizerV3:
         coste_almacen_terms = [] 
         
         inv_actual_dict = self.current_state.get('inventarios_detalle', {})
-
+        
+        # --- Bucle por ÁREA para manejar la dependencia X -> Y ---
         for area in AREAS:
-            for prod in ['X', 'Y']:
-                prod_var = self.variables[f'prod_{area}_{prod}']
-                open_var = self.variables[f'open_{area}_{prod}']
+            
+            # --- Definir variables de producto (X e Y) ---
+            prod_X_var = self.variables[f'prod_{area}_X']
+            open_X_var = self.variables[f'open_{area}_X']
+            
+            prod_Y_var = self.variables[f'prod_{area}_Y']
+            open_Y_var = self.variables[f'open_{area}_Y']
+
+            # --- Costes y 'Big M' (aplicable a ambos) ---
+            for prod, prod_var, open_var in [('X', prod_X_var, open_X_var), ('Y', prod_Y_var, open_Y_var)]:
                 cap = CAP_MAX[area][prod]
-
                 self.model += prod_var <= cap * open_var
-                self.model += prod_var >= 10 * open_var
-
+                self.model += prod_var >= 10 * open_var # Producción mínima si está abierta
+                
                 coste_fijo_terms.append(COSTE_FIJO[area][prod][0] * open_var)
                 precio_tipico = PRECIOS_TIPICOS[area][prod]
                 vc_rate = 0.155 if prod == 'X' else 0.30
                 coste_variable_terms.append((precio_tipico * vc_rate) * prod_var)
 
-                grado_a_producir = self.production_grade_map.get((area, prod), -1)
-                prod_std = prod_var if grado_a_producir == 0 else 0
-                prod_lujo = prod_var if grado_a_producir == 1 else 0
+            # --- Lógica de Flujo de Inventario de CHIPS (X) ---
+            grado_a_producir_X = self.production_grade_map.get((area, 'X'), -1)
+            prod_X_std = prod_X_var if grado_a_producir_X == 0 else 0
+            prod_X_lujo = prod_X_var if grado_a_producir_X == 1 else 0
 
-                # Grado 0 (Estándar)
-                key_std = (area, prod, 0)
-                inv_actual_std = inv_actual_dict.get(key_std, 0)
-                ventas_std = self.variables.get(f'ventas_{area}_{prod}_0')
-                inv_final_std = self.variables.get(f'inv_final_{area}_{prod}_0')
-                
-                cond_std = self.market_conditions.get(key_std)
-                if ventas_std is not None:
-                    if cond_std:
-                        self.model += ventas_std <= cond_std['demanda']
-                        self.model += ventas_std <= inv_actual_std + prod_std
-                        ingreso_terms.append(cond_std['precio'] * ventas_std)
-                    else:
-                        self.model += ventas_std == 0
-                    
-                    if inv_final_std is not None:
-                        self.model += inv_final_std == inv_actual_std + prod_std - ventas_std
-                        inventario_final_terms.append(inv_final_std)
-                        coste_almacen_terms.append(inv_final_std * ALMACEN_MIN[area][prod])
-
-                # Grado 1 (Lujo)
-                key_lujo = (area, prod, 1)
-                inv_actual_lujo = inv_actual_dict.get(key_lujo, 0)
-                ventas_lujo = self.variables.get(f'ventas_{area}_{prod}_1')
-                inv_final_lujo = self.variables.get(f'inv_final_{area}_{prod}_1')
-
-                cond_lujo = self.market_conditions.get(key_lujo)
-                if ventas_lujo is not None:
-                    if cond_lujo:
-                        self.model += ventas_lujo <= cond_lujo['demanda']
-                        self.model += ventas_lujo <= inv_actual_lujo + prod_lujo
-                        ingreso_terms.append(cond_lujo['precio'] * ventas_lujo)
-                    else:
-                        self.model += ventas_lujo == 0
-                    
-                    if inv_final_lujo is not None:
-                        self.model += inv_final_lujo == inv_actual_lujo + prod_lujo - ventas_lujo
-                        inventario_final_terms.append(inv_final_lujo)
-                        coste_almacen_terms.append(inv_final_lujo * ALMACEN_MIN[area][prod])
-        
-        # *** CORRECCIÓN DE LÓGICA: Dependencia X -> Y ***
-        # Asumir que 1 PC (Y) requiere 1 Chip (X)
-        for area in AREAS:
-            prod_Y_total = self.variables[f'prod_{area}_Y']
-            
-            # Chips Disponibles = Stock + Producción de Chips
-            inv_X_std = inv_actual_dict.get((area, 'X', 0), 0)
-            inv_X_lujo = inv_actual_dict.get((area, 'X', 1), 0)
-            inv_X_total = inv_X_std + inv_X_lujo
-            
-            prod_X_total = self.variables[f'prod_{area}_X']
-            
-            # Chips Vendidos (que no se pueden usar para PCs)
+            inv_X_actual_std = inv_actual_dict.get((area, 'X', 0), 0)
             ventas_X_std = self.variables[f'ventas_{area}_X_0']
-            ventas_X_lujo = self.variables[f'ventas_{area}_X_1']
-            ventas_X_total = ventas_X_std + ventas_X_lujo
+            inv_final_X_std = self.variables[f'inv_final_{area}_X_0']
             
-            # Restricción: La producción de PCs no puede exceder los chips disponibles
-            # (después de restar las ventas directas de chips)
-            self.model += prod_Y_total <= (inv_X_total + prod_X_total - ventas_X_total)
+            inv_X_actual_lujo = inv_actual_dict.get((area, 'X', 1), 0)
+            ventas_X_lujo = self.variables[f'ventas_{area}_X_1']
+            inv_final_X_lujo = self.variables[f'inv_final_{area}_X_1']
+
+            # Restricciones de venta de X (no puedes vender más de lo que tienes/produces)
+            self.model += ventas_X_std <= inv_X_actual_std + prod_X_std
+            self.model += ventas_X_lujo <= inv_X_actual_lujo + prod_X_lujo
+            
+            # --- Lógica de Flujo de Inventario de PCs (Y) ---
+            grado_a_producir_Y = self.production_grade_map.get((area, 'Y'), -1)
+            prod_Y_std = prod_Y_var if grado_a_producir_Y == 0 else 0
+            prod_Y_lujo = prod_Y_var if grado_a_producir_Y == 1 else 0
+
+            inv_Y_actual_std = inv_actual_dict.get((area, 'Y', 0), 0)
+            ventas_Y_std = self.variables[f'ventas_{area}_Y_0']
+            inv_final_Y_std = self.variables[f'inv_final_{area}_Y_0']
+            
+            inv_Y_actual_lujo = inv_actual_dict.get((area, 'Y', 1), 0)
+            ventas_Y_lujo = self.variables[f'ventas_{area}_Y_1']
+            inv_final_Y_lujo = self.variables[f'inv_final_{area}_Y_1']
+            
+            # Restricciones de venta de Y
+            self.model += ventas_Y_std <= inv_Y_actual_std + prod_Y_std
+            self.model += ventas_Y_lujo <= inv_Y_actual_lujo + prod_Y_lujo
+            
+            # --- Lógica de Consumo (La restricción clave) ---
+            # Asumir que 1 PC (Y) requiere 1 Chip (X) [cite: 742-743, 957-959, 1033-1035]
+            chips_necesarios_para_Y = prod_Y_var
+            
+            # Chips disponibles para la producción de Y (Stock + Prod - Ventas)
+            chips_disponibles_para_Y = (inv_X_actual_std + prod_X_std - ventas_X_std) + \
+                                       (inv_X_actual_lujo + prod_X_lujo - ventas_X_lujo)
+            
+            # **RESTRICCIÓN DE CONSUMO**
+            self.model += chips_necesarios_para_Y <= chips_disponibles_para_Y
+            
+            # --- Inventarios Finales y Costes de Almacén ---
+            
+            # Inventario Final de X (se reduce por las ventas de X Y la producción de Y)
+            self.model += inv_final_X_std + inv_final_X_lujo == chips_disponibles_para_Y - chips_necesarios_para_Y
+            
+            # Inventario Final de Y (se reduce solo por las ventas de Y)
+            self.model += inv_final_Y_std == inv_Y_actual_std + prod_Y_std - ventas_Y_std
+            self.model += inv_final_Y_lujo == inv_Y_actual_lujo + prod_Y_lujo - ventas_Y_lujo
+            
+            # Añadir costes de almacén e ingresos para los 4 productos (X_std, X_lujo, Y_std, Y_lujo)
+            for key, inv_final_var in [
+                ((area, 'X', 0), inv_final_X_std),
+                ((area, 'X', 1), inv_final_X_lujo),
+                ((area, 'Y', 0), inv_final_Y_std),
+                ((area, 'Y', 1), inv_final_Y_lujo)
+            ]:
+                inventario_final_terms.append(inv_final_var)
+                coste_almacen_terms.append(inv_final_var * ALMACEN_MIN[key[0]][key[1]])
+                
+                cond = self.market_conditions.get(key)
+                if cond:
+                    ingreso_terms.append(cond['precio'] * self.variables[f'ventas_{key[0]}_{key[1]}_{key[2]}'])
+                    # Forzar a que la venta no supere la demanda
+                    self.model += self.variables[f'ventas_{key[0]}_{key[1]}_{key[2]}'] <= cond['demanda']
+                else:
+                    # Si no es un mercado activo en esta estrategia, no se vende
+                    self.model += self.variables[f'ventas_{key[0]}_{key[1]}_{key[2]}'] == 0
 
 
         # --- Función Objetivo (Ranking) ---

@@ -80,6 +80,7 @@ class LSTParser:
             
             parsed_data['inventarios_detalle'] = inventarios_detalle
 
+
         # --- Bloque 4: ASESORIA NUMERO 3 (Cuota de Mercado y Ventas Totales) ---
         match_ventas_block = re.search(r'ASESORIA NUMERO 3([\s\S]*?)(?:ASESORIA NUMERO 28|COMPAÑIA\s+\d+\s+ASESORIA NUMERO 28)', content)
         if match_ventas_block:
@@ -108,8 +109,8 @@ class LSTParser:
                     cia_nombre = cia_match.group(1).strip()
                     
                     # Encontrar todos los números (enteros o '0') en el resto de la línea
-                    # Esta regex busca un número (con o sin espacios) seguido de un punto
-                    numeros_str = re.findall(r'([\s\d]+)\.', line[len(cia_match.group(0)):]) 
+                    # Esta regex busca cualquier grupo de dígitos o espacios, seguido de un punto
+                    numeros_str = re.findall(r'([\s\d]*)\.', line[len(cia_match.group(0)):])
                     
                     if len(numeros_str) == 12:
                         # Limpiar espacios y convertir a float

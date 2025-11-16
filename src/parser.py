@@ -30,13 +30,13 @@ class LSTParser:
         if match_info_block:
             info_block = match_info_block.group(1)
             
-            # *** CORRECCIÓN: Los informes LST están en unidades, NO en miles. Quitar * 1000 ***
+            # (Inventarios y Ventas están en unidades reales, no en miles)
 
             # 1. Ventas Propias (A Consumidores - Estándar)
             match_ventas_std = re.search(r'A CONSUMIDORES\s+(\d+)\.\s+(\d+)\.\s+(\d+)\.\s+(\d+)\.\s+(\d+)\.\s+(\d+)\.', info_block)
             if match_ventas_std:
                 vals = list(map(int, match_ventas_std.groups()))
-                if vals[0] > 0: ventas_propias[('US', 'X', 0)] = vals[0] # No * 1000
+                if vals[0] > 0: ventas_propias[('US', 'X', 0)] = vals[0]
                 if vals[1] > 0: ventas_propias[('US', 'Y', 0)] = vals[1]
                 if vals[2] > 0: ventas_propias[('EU', 'X', 0)] = vals[2]
                 if vals[3] > 0: ventas_propias[('EU', 'Y', 0)] = vals[3]
@@ -47,7 +47,7 @@ class LSTParser:
             match_ventas_lujo = re.search(r'VENTA UNIDADES DE LUJO\s+A CONSUMIDORES\s+(\d+)\.\s+(\d+)\.\s+(\d+)\.\s+(\d+)\.\s+(\d+)\.\s+(\d+)\.', info_block)
             if match_ventas_lujo:
                 vals = list(map(int, match_ventas_lujo.groups()))
-                if vals[0] > 0: ventas_propias[('US', 'X', 1)] = vals[0] # No * 1000
+                if vals[0] > 0: ventas_propias[('US', 'X', 1)] = vals[0]
                 if vals[1] > 0: ventas_propias[('US', 'Y', 1)] = vals[1]
                 if vals[2] > 0: ventas_propias[('EU', 'X', 1)] = vals[2]
                 if vals[3] > 0: ventas_propias[('EU', 'Y', 1)] = vals[3]
@@ -60,7 +60,7 @@ class LSTParser:
             match_inv_std = re.search(r'INVENTARIO FINAL\s+UNIDADES ESTANDAR\s+(\d+)\.\s+(\d+)\.\s+(\d+)\.\s+(\d+)\.\s+(\d+)\.\s+(\d+)\.', info_block)
             if match_inv_std:
                 vals = list(map(int, match_inv_std.groups()))
-                if vals[0] > 0: inventarios_detalle[('US', 'X', 0)] = vals[0] # No * 1000
+                if vals[0] > 0: inventarios_detalle[('US', 'X', 0)] = vals[0]
                 if vals[1] > 0: inventarios_detalle[('US', 'Y', 0)] = vals[1]
                 if vals[2] > 0: inventarios_detalle[('EU', 'X', 0)] = vals[2]
                 if vals[3] > 0: inventarios_detalle[('EU', 'Y', 0)] = vals[3]
@@ -71,7 +71,7 @@ class LSTParser:
             match_inv_lujo = re.search(r'INVENTARIO FINAL\s+UNIDADES DE LUJO\s+(\d+)\.\s+(\d+)\.\s+(\d+)\.\s+(\d+)\.\s+(\d+)\.\s+(\d+)\.', info_block)
             if match_inv_lujo:
                 vals = list(map(int, match_inv_lujo.groups()))
-                if vals[0] > 0: inventarios_detalle[('US', 'X', 1)] = vals[0] # No * 1000
+                if vals[0] > 0: inventarios_detalle[('US', 'X', 1)] = vals[0]
                 if vals[1] > 0: inventarios_detalle[('US', 'Y', 1)] = vals[1]
                 if vals[2] > 0: inventarios_detalle[('EU', 'X', 1)] = vals[2]
                 if vals[3] > 0: inventarios_detalle[('EU', 'Y', 1)] = vals[3]
@@ -113,7 +113,7 @@ class LSTParser:
                     numeros_str = re.findall(r'([\s\d]*)\.', line[len(cia_match.group(0)):])
                     
                     if len(numeros_str) == 12:
-                        # Limpiar espacios y convertir a float
+                        # Limpiar espacios y convertir a float (' ' o '' se vuelve '0')
                         precios_num = [float(n.strip() or '0') for n in numeros_str]
                         mercado_precios[cia_nombre] = precios_num
         

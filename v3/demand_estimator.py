@@ -54,9 +54,27 @@ class DemandEstimator:
                 
                 ventas_total_prod = ventas_totales_producto_periodo[col_ventas]
                 
+                # --- LÓGICA DE PROXY DE VENTAS CORREGIDA ---
                 if precio_promedio_grado > 0 and ventas_total_prod > 0:
-                    datos[mercado_key_grado]['precios_avg'].append(precio_promedio_grado)
-                    datos[mercado_key_grado]['ventas_total_proxy'].append(ventas_total_prod)
+                    
+                    # Comprobar si el grado opuesto también tiene precios
+                    grado_opuesto = 1 - grado
+                    col_precio_opuesto = COL_MAP.get((area, prod, grado_opuesto))
+                    precio_opuesto_presente = False
+                    if col_precio_opuesto is not None:
+                        for cia, precios in precios_mercado_periodo.items():
+                             if len(precios) == 12 and precios[col_precio_opuesto] > 0:
+                                 precio_opuesto_presente = True
+                                 break
+                    
+                    ventas_proxy_grado = ventas_total_prod
+                    # Si ambos grados (G0 y G1) tienen precios, dividimos las ventas 50/50
+                    if precio_opuesto_presente:
+                        ventas_proxy_grado = ventas_total_prod * 0.5
+                    
+                    if ventas_proxy_grado > 0:
+                        datos[mercado_key_grado]['precios_avg'].append(precio_promedio_grado)
+                        datos[mercado_key_grado]['ventas_total_proxy'].append(ventas_proxy_grado)
                     
         return datos
 
@@ -66,22 +84,27 @@ class DemandEstimator:
             
             if len(data['precios_avg']) >= 2 and np.var(data['precios_avg']) > 0:
                 try:
+                    # Usar polyfit (regresión lineal)
                     m, b = np.polyfit(data['precios_avg'], data['ventas_total_proxy'], 1)
-                    if m < 0: 
+                    if m < 0: # Solo aceptar si la pendiente es negativa (ley de demanda)
                         modelos[mercado_key_grado] = {'pendiente': m, 'interseccion': b, 'puntos_datos': len(data['precios_avg'])}
                 except np.linalg.LinAlgError:
-                    pass
+                    pass 
         return modelos
 
     def get_demand_function(self, area, prod, grado):
         key = (area, prod, int(grado))
+        # Modelo por defecto si falla todo
         default_model = {'pendiente': -100.0, 'interseccion': 50000, 'puntos_datos': 0}
         
+        # 1. Intentar encontrar el modelo exacto (ej. 'EU', 'Y', 1)
         modelo_encontrado = self.modelos_demanda.get(key)
         
         if modelo_encontrado:
             return modelo_encontrado
         else:
+            # 2. Si falla, intentar usar el modelo del grado opuesto (ej. 'EU', 'Y', 0)
+            # (Esto es mejor que usar el 'default_model' si tenemos datos)
             grado_opuesto = 1 - int(grado)
             key_opuesto = (area, prod, grado_opuesto)
             return self.modelos_demanda.get(key_opuesto, default_model)

@@ -140,12 +140,28 @@ def find_best_strategy(current_state_norm, patentes, estimador, strategy_config)
 
 # --- PASO 1: Cargar LSTs ---
 DATA_DIR = os.path.join(os.getcwd(), 'data')
-files = sorted(
-    glob.glob(os.path.join(DATA_DIR, 'Decisión [0-9].lst.txt')) + 
-    glob.glob(os.path.join(DATA_DIR, 'Descisión [0-9].lst.txt')),
-    key=lambda x: int(re.search(r'[Dd]ecisión (\d+)', x).group(1))
-)
+
+# Modificación: Priorizar archivos '_fixed.txt' si existen
+files_fixed = glob.glob(os.path.join(DATA_DIR, '*_fixed.txt'))
+
+if files_fixed:
+    print("-> Usando archivos CORREGIDOS (_fixed.txt)")
+    files = sorted(
+        files_fixed,
+        key=lambda x: int(re.search(r'[Dd]ecisión (\d+)', os.path.basename(x)).group(1))
+    )
+else:
+    print("-> Usando archivos ORIGINALES (puede haber errores de formato)")
+    files = sorted(
+        glob.glob(os.path.join(DATA_DIR, 'Decisión [0-9].lst.txt')) + 
+        glob.glob(os.path.join(DATA_DIR, 'Descisión [0-9].lst.txt')),
+        key=lambda x: int(re.search(r'[Dd]ecisión (\d+)', os.path.basename(x)).group(1))
+    )
+
 if not files: exit("Error: No se encontraron archivos de Decisión en /data.")
+
+
+
 
 print(f"Archivos LST detectados: {[os.path.basename(f) for f in files]}")
 parser = LSTParser()

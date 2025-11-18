@@ -1,7 +1,7 @@
 Area,Producto,PlantasNuevas,MejoraMetodos(miles),GradoInf,Prod_P1(k),Prod_P2(k),Prod_P3(k),GradoSup,ProdSup_P1(k),ProdSup_P2(k),ProdSup_P3(k)
 US,X,0,0,0,0,0,0,0,0,0,0
 US,Y,0,0,0,0,0,0,0,0,0,0
-EU,X,0,0,0,9080,0,0,0,0,0,0
+EU,X,0,0,0,0,0,0,0,0,0,0
 EU,Y,0,0,0,9080,0,0,0,0,0,0
 BR,X,0,0,0,0,0,0,0,0,0,0
 BR,Y,0,0,0,0,0,0,0,0,0,0

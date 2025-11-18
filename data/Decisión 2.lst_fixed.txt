@@ -1,0 +1,339 @@
+
+
+ COMPA¥IA   4 THAIS_FUENLA_A_2025-            
+ BALANCE                               U.S.                     EC/EU                     BRAZIL            LIECHTENST  CONSOLIDADO
+                                   U.S. DOLLAR                   EURO                    CRUZEIRO          SWISS FRANC  SWISS FRANC 
+ ACTIVOS                                                                                                                      
+
+   CAJA                                             0.                    86732.                        0.    13500543.    13760741.
+   CxC PERIODO   3                                  0.                        0.                        0.                        0.
+   CxC PERIODO   4                                  0.                        0.                        0.                        0.
+   INVENTARIO ESTANDAR DE X            0.                   162252.                        0.
+              DE LUJO DE  X            0.                        0.                        0.
+              ESTANDAR DE Y            0.                        0.                        0.
+              DE LUJO DE  Y            0.                        0.                        0.
+              TOTAL                                 0.                   162252.                        0.                   486757.
+   INVERSIONES A CORTO PLAZO                        0.                        0.                        0.           0.           0.
+
+ TOTAL ACTIVOS CIRCULANTES                          0.                   248985.                        0.    13500543.    14247498.
+
+   PLANTAS                                          0.                  1920000.                        0.                  5760000.
+   INVERSIONES INTER-CIA.                                                                                            0.           0.
+   APORTE A SUBSIDIARIAS                                                                                       6621000.
+
+ TOTAL ACTIVOS                                      0.                  2168985.                        0.    20121543.    20007498.
+
+ PASIVOS
+
+   CxP PERIODO   3                                  0.                    32450.                        0.           0.       97351.
+   CxP PERIODO   4                                  0.                    48676.                        0.                   146027.
+   CREDITO PROVEEDORES                              0.                        0.                        0.           0.           0.
+   PRESTAMOS BANCO LOCAL                            0.                        0.                        0.                        0.
+TOTAL PASIVOS CIRCULANTES                          0.                    81126.                        0.           0.      243379.
+
+   PRESTAMOS INTER-COMPA¥IA                                                                                          0.           0.
+   PRESTAMOS BANCARIOS                                                                                               0.           0.
+   OBLIGACIONES POR BONOS                                                                                            0.           0.
+
+ TOTAL PASIVOS                                      0.                    81126.                        0.           0.      243379.
+
+ PATRIMONIO
+
+   ACCIONES                                                                                                   20000000.    20000000.
+   APORTES DE CAPITAL                                                                                                0.           0.
+   UTILIDADES RETENIDAS                             0.                  -119141.                        0.      121543.     -235880.
+   APORTE CASA MATRIZ                               0.                  2207000.                        0.
+
+   PP o GG NO REALIZADAS                            0.                        0.                        0.           0.           0.
+
+ PATRIMONIO TOTAL                                   0.                  2087859.                        0.    20121543.    19764120.
+
+ TOTAL PASIVOS Y PATRIMONIO                         0.                  2168985.                        0.    20121543.    20007498.
+
+ NOTE: CASH IS IN A SENSE AN ARTIFICIAL ACCOUNT, REPRESENTING THE SUM OF POSITIVE AND NEGATIVE FOREIGN CURRENCY (FC) BALANCES IN AN
+ AREA, IN ADDITION TO LOCAL CURRENCY (LC). IF THE FORMAL CASH BALANCE IS 0, THE OVERALL SUM OF CURRENCIES BEFORE SUPPLIER CREDIT   
+ (SC) WOULD ALMOST INVARIABLY BE NEGATIVE. THE INTEGRITY OF THE BALANCE SHEET IS RESTORED BY THE SC ACCOUNT (WHICH INCLUDES SC     
+ INTEREST AS WELL). FOR A DETAILED VIEW OF LC AND FC HOLDINGS IN UNITS AND THEIR VALUE IN LC SEE THE FOREIGN CURRENCY STATEMENT.   
+
+
+ COMPA¥IA   4 THAIS_FUENLA_A_2025-            
+ ESTADO DE RESULTADOS                  U.S.                     EC/EU                     BRAZIL            LIECHTENST  CONSOLIDADO
+                                   U.S. DOLLAR                   EURO                    CRUZEIRO          SWISS FRANC  SWISS FRANC 
+                                  CHIP          PC          CHIP          PC          CHIP          PC    
+
+ VENTAS UNIDADES ESTANDAR
+     A CONSUMIDORES                    0.           0.           0.           0.           0.           0.                        0.
+     INTRA-COMPA¥IA                    0.           0.           0.           0.           0.           0.                        0.
+     INTER-COMPA¥IA                    0.           0.           0.           0.           0.           0.                        0.
+     COMPONENTES                       0.                        0.                        0.                                     0.
+   MENOS COSTO DE LOS BIENES           0.           0.           0.           0.           0.           0.                        0.
+   MARGEN BRUTO                        0.           0.           0.           0.           0.           0.                        0.
+ VENTAS UNIDADES DE LUJO
+     A CONSUMIDORES                    0.           0.           0.           0.           0.           0.                        0.
+     INTRA-COMPA¥IA                    0.           0.           0.           0.           0.           0.                        0.
+     INTER-COMPA¥IA                    0.           0.           0.           0.           0.           0.                        0.
+     COMPONENTES                       0.                        0.                        0.                                     0.
+   MENOS COSTO DE LOS BIENES           0.           0.           0.           0.           0.           0.                        0.
+   MARGEN BRUTO                        0.           0.           0.           0.           0.           0.                        0.
+ MARGEN BRUTO TOTAL                    0.           0.           0.           0.           0.           0.                        0.
+GASTOS OPERACIONALES
+   COMERCIALES Y ADMIN.                0.           0.           0.           0.           0.           0.                        0.
+   PUBLICIDAD                          0.           0.           0.           0.           0.           0.                        0.
+   TRANSFERENCIA                       0.           0.           0.           0.           0.           0.                        0.
+   INVENTARIO                          0.           0.           0.           0.           0.           0.                        0.
+   EXPEDITAJE DE UNIDADES              0.           0.           0.           0.           0.           0.                        0.
+   MEJORAMIENTO DE METODOS             0.           0.           0.           0.           0.           0.                        0.
+   DEPREC. Y COSTOS FIJOS              0.           0.      120000.           0.           0.           0.                   360000.
+ GASTO OPERACIONAL TOTAL               0.           0.      120000.           0.           0.           0.                   360000.
+ UTILIDAD OPERACIONAL                  0.           0.     -120000.           0.           0.           0.                  -360000.
+ UTILIDAD OPERACIONAL TOTAL                         0.                  -120000.                        0.                  -360000.
+INGRESOS NO OPERACIONALES
+   LICENCIAS  CHIP                                                                                                   0.           0.
+   LICENCIAS  PC                                                                                                     0.           0.
+   INGRESOS POR INTERESES                           0.                      859.                        0.      199515.      202092.
+   INGRESOS VARIOS                                  0.                        0.                        0.           0.           0.
+ INGRESOS NO OPERAC. TOTAL                          0.                      859.                        0.      199515.      202092.
+GASTOS NO OPERACIONALES
+   LICENCIAS  CHIP                                                                                                   0.           0.
+   LICENCIAS  PC                                                                                                     0.           0.
+   SERVICIOS DE ASESORIA                                                                                             0.           0.
+   I. y D. CHIP                                                                                                 280000.      280000.
+   I. y D. PC                                                                                                        0.           0.
+   GASTOS POR INTERESES                             0.                        0.                        0.           0.           0.
+   GASTOS VARIOS                                    0.                        0.                        0.           0.           0.
+   COSTO CAMBIO DE MONEDAS                          0.                        0.                        0.       14484.       14484.
+ GASTOS NO OPERAC. TOTALES                          0.                        0.                        0.      294484.      294484.
+PP o GG REALIZADAS                                 0.                        0.                        0.           0.           0.
+ UTILIDAD BRUTA                                     0.                  -119141.                        0.      -94969.     -452392.
+   IMPUESTO A LA RENTA                              0.                        0.                        0.           0.           0.
+   IMPTO. TRANSF. DE CAPITAL                        0.                        0.                        0.           0.           0.
+ UTILIDAD DEL PERIODO                               0.                  -119141.                        0.      -94969.     -452392.
+   DIVIDENDOS                                                                                                        0.           0.
+ A UTILIDADES RETENIDAS                             0.                  -119141.                        0.      -94969.     -452392.
+
+
+ COMPA¥IA   4 THAIS_FUENLA_A_2025-            
+
+ INFORMACION NO CONTABLE                  U.S.                            EC/EU                            BRAZIL     
+                                   CHIP             PC              CHIP             PC              CHIP             PC       
+
+ VENTAS UNIDADES ESTANDAR
+   A CONSUMIDORES                       0.                 0.            0.                 0.            0.                 0.
+   INTRA-COMPA¥IA                       0.                 0.            0.                 0.            0.                 0.
+   INTER-COMPA¥IA                       0.                 0.            0.                 0.            0.                 0.
+   COMPONENTES                          0.                               0.                               0.
+ VENTA UNIDADES DE LUJO
+   A CONSUMIDORES                       0.                 0.            0.                 0.            0.                 0.
+   INTRA-COMPA¥IA                       0.                 0.            0.                 0.            0.                 0.
+   INTER-COMPA¥IA                       0.                 0.            0.                 0.            0.                 0.
+   COMPONENTES                          0.                               0.                               0.
+
+ ANALISIS DE COSTO DE PRODUCCION
+  PLANTA 1 COSTO GRADO INF.             0.       0./       0.       162252.       0./       0.            0.       0./       0.
+           UNIDADES                     0.                 0.        26000.                 0.            0.                 0.
+           COSTO GRADO SUP.             0.       0./       0.            0.       0./       0.            0.       0./       0.
+           UNIDADES                     0.                 0.            0.                 0.            0.                 0.
+  PLANTA 2 COSTO GRADO INF.             0.       0./       0.            0.       0./       0.            0.       0./       0.
+           UNIDADES                     0.                 0.            0.                 0.            0.                 0.
+           COSTO GRADO SUP.             0.       0./       0.            0.       0./       0.            0.       0./       0.
+           UNIDADES                     0.                 0.            0.                 0.            0.                 0.
+  PLANTA 3 COSTO GRADO INF.             0.       0./       0.            0.       0./       0.            0.       0./       0.
+           UNIDADES                     0.                 0.            0.                 0.            0.                 0.
+           COSTO GRADO SUP.             0.       0./       0.            0.       0./       0.            0.       0./       0.
+           UNIDADES                     0.                 0.            0.                 0.            0.                 0.
+           GRADO INFERIOR               0.                 0.            0.                 0.            0.                 0.
+           GRADO SUPERIOR               0.                 0.            0.                 0.            0.                 0.
+
+ COMPRAS INTRA-CIA.
+                  COSTO                 0.                 0.            0.                 0.            0.                 0.
+           UNIDADES                     0.                 0.            0.                 0.            0.                 0.
+
+ COMPRAS INTER-CIA.
+                  COSTO                 0.                 0.            0.                 0.            0.                 0.
+           UNIDADES                     0.                 0.            0.                 0.            0.                 0.
+COMPONENTES EXPEDITADOS
+                  COSTOS                0.                               0.                               0.
+                  UNIDADES              0.                               0.                               0.
+                  GRADO                 0.                               0.                               0.
+
+ INVENTARIO FINAL
+   UNIDADES ESTANDAR                    0.                 0.        26000.                 0.            0.                 0.
+            GRADO                       0.                 0.            0.                 0.            0.                 0.
+   UNIDADES DE LUJO                     0.                 0.            0.                 0.            0.                 0.
+            GRADO                       0.                 0.            0.                 0.            0.                 0.
+CANTIDAD DE PLANTAS                    0.                 0.            2.                 0.            0.                 0.
+ NUMEROS DE LAS PLANTAS                                              1   2                                                    
+OFICINAS DE VENTA                      0.                               0.                               0.
+ MAXIMO GRADO DE PRODUCCION             1.                 0.            1.                 0.            1.                 0.
+ MAXIMO GRADO POSEIDO                   1.                 0.            1.                 0.            1.                 0.
+
+
+  COMPA¥IA   4                                      ESTADO DE MONEDA EXTRANJERA
+RESUMEN DE MONEDAS                           U.S.                     EC/EU                     BRAZIL                 LIECHTENST.   
+                                 UNIDADES        VALOR     UNIDADES        VALOR     UNIDADES        VALOR     UNIDADES        VALOR
+ U.S. DOLLAR                           0.           0.           0.           0.           0.           0.           0.           0.
+ EURO                                  0.           0.       86732.       86732.           0.           0.           0.           0.
+ CRUZEIRO                              0.           0.           0.           0.           0.           0.           0.           0.
+ SWISS FRANC                           0.           0.           0.           0.           0.           0.    13500543.    13500543.
+                                          ------------              ------------              ------------              ------------
+ CAJA EN BALANCE   :                                0.                    86732.                        0.                 13500543.
+EN LA ESQUINA SUPERIOR IZQUIERDA DE CADA TABLA SE INDICA LA MONEDA EN QUE ESTAN EXPRESADOS LOS MONTOS, EXCEPTO POR LAS ULTIMAS  
+ 3 LINEAS. ESTAS LINEAS ESTAN EXPRESADAS EN LA MONEDA DEL AREA QUE SE INDICA EN LA PARTE SUPERIOR DE LA COLUMNA.                
+" PARA OBTENER EL VALOR DE LA CAJA EN EL BALANCE, SUME LOS MONTOS INDICADOS EN ""VALOR DEL SALDO FINAL"" DE TODAS LAS MONEDAS DEL AREA."
+ LA SUMA DEL LOS INTERESES PAGADOS Y RECIBIDOS EN EL AREA EXPRESADOS EN LA MONEDA LOCAL SE ENCUENTRA EN EL ESTADO DE RESULTADOS DEL 
+ AREA CORRESPONDIENTE.                                       
+ LAS INVERSIONES EN MONEDA EXTRANJERA SON REGISTRADAS SOLAMENTE EN LA CASA MATRIZ, PORQUE EN LAS AREAS SOLO SE PUEDE INVERTIR EN LA  
+ MONEDA DEL AREA.                                                                                                                  
+ NOTA: EL CREDITO DE PROVEEDORES (SIN INTERESES) ESTA INCLUIDO EN LAS ENTRADAS DE MONEDA LOCAL.           
+
+ U.S. DOLLAR 
+ -----------                     U.S.             EC/EU             BRAZIL         LIECHTENST.    CONSOLIDADO
+ TIPO DE CAMBIO                  1.000              .633             4.750             1.900
+ ENTRADAS                           0.                0.                0.                0.                0.
+ SALIDAS                            0.                0.                0.                0.                0.
+ SALDO FINAL                        0.                0.                0.                0.                0.
+ CxC PERIODO   3                    0.                0.                0.                                  0.
+ CxC PERIODO   4                    0.                0.                0.                                  0.
+ CxP PERIODO   3                    0.                0.                0.                                  0.
+ CxP PERIODO   4                    0.                0.                0.                                  0.
+ INTERESES RECIBIDOS                0.                0.                0.                0.                0.
+ INTERESES PAGADOS                  0.                0.                0.                0.                0.
+ INVERSIONES CASA MATRIZ                                                                  0.                0.
+ BONOS POR PAGAR                                                                          0.                0.
+ OBLIGACIONES POR COBRAR                                                                  0.                0.
+ OBLIGACIONES POR PAGAR                                                                   0.                0.
+    GG/PP NO REALIZADAS             0.                0.                0.                0.                0.
+    GG/PP REALIZADAS                0.                0.                0.                0.                0.
+    VALOR DEL SALDO FINAL           0.                0.                0.                0.                0.
+ 
+ EURO        
+ ----                            U.S.             EC/EU             BRAZIL         LIECHTENST.    CONSOLIDADO
+ TIPO DE CAMBIO                  1.579             1.000             7.500             3.000
+ ENTRADAS                           0.          1207859.                0.          1207000.          2414859.
+ SALIDAS                            0.          1121126.                0.          1207000.          2328126.
+ SALDO FINAL                        0.            86732.                0.                0.            86732.
+ CxC PERIODO   3                    0.                0.                0.                                  0.
+ CxC PERIODO   4                    0.                0.                0.                                  0.
+ CxP PERIODO   3                    0.            32450.                0.                              32450.
+ CxP PERIODO   4                    0.            48676.                0.                              48676.
+ INTERESES RECIBIDOS                0.              859.                0.                0.              859.
+ INTERESES PAGADOS                  0.                0.                0.                0.                0.
+ INVERSIONES CASA MATRIZ                                                                  0.                0.
+ BONOS POR PAGAR                                                                          0.                0.
+ OBLIGACIONES POR COBRAR                                                                  0.                0.
+ OBLIGACIONES POR PAGAR                                                                   0.                0.
+    GG/PP NO REALIZADAS             0.                0.                0.                0.                0.
+    GG/PP REALIZADAS                0.                0.                0.                0.                0.
+    VALOR DEL SALDO FINAL           0.            86732.                0.                0.           260197.
+ 
+
+
+ CRUZEIRO    
+ --------                        U.S.             EC/EU             BRAZIL         LIECHTENST.    CONSOLIDADO
+ TIPO DE CAMBIO                   .211              .133             1.000              .400
+ ENTRADAS                           0.                0.                0.                0.                0.
+ SALIDAS                            0.                0.                0.                0.                0.
+ SALDO FINAL                        0.                0.                0.                0.                0.
+ CxC PERIODO   3                    0.                0.                0.                                  0.
+ CxC PERIODO   4                    0.                0.                0.                                  0.
+ CxP PERIODO   3                    0.                0.                0.                                  0.
+ CxP PERIODO   4                    0.                0.                0.                                  0.
+ INTERESES RECIBIDOS                0.                0.                0.                0.                0.
+ INTERESES PAGADOS                  0.                0.                0.                0.                0.
+ INVERSIONES CASA MATRIZ                                                                  0.                0.
+ BONOS POR PAGAR                                                                          0.                0.
+ OBLIGACIONES POR COBRAR                                                                  0.                0.
+ OBLIGACIONES POR PAGAR                                                                   0.                0.
+    GG/PP NO REALIZADAS             0.                0.                0.                0.                0.
+    GG/PP REALIZADAS                0.                0.                0.                0.                0.
+    VALOR DEL SALDO FINAL           0.                0.                0.                0.                0.
+ 
+ SWISS FRANC 
+ -----------                     U.S.             EC/EU             BRAZIL         LIECHTENST.    CONSOLIDADO
+ TIPO DE CAMBIO                   .526              .333             2.500             1.000
+ ENTRADAS                           0.                0.                0.         16999515.         16999515.
+ SALIDAS                            0.                0.                0.          3953692.          3953692.
+ SALDO FINAL                        0.                0.                0.         13500543.         13500543.
+ CxC PERIODO   3                    0.                0.                0.                                  0.
+ CxC PERIODO   4                    0.                0.                0.                                  0.
+ CxP PERIODO   3                    0.                0.                0.                0.                0.
+ CxP PERIODO   4                    0.                0.                0.                                  0.
+ INTERESES RECIBIDOS                0.                0.                0.           199515.           199515.
+ INTERESES PAGADOS                  0.                0.                0.                0.                0.
+ INVERSIONES CASA MATRIZ                                                                  0.                0.
+ BONOS POR PAGAR                                                                          0.                0.
+ OBLIGACIONES POR COBRAR                                                                  0.                0.
+ OBLIGACIONES POR PAGAR                                                                   0.                0.
+    GG/PP NO REALIZADAS             0.                0.                0.                0.                0.
+    GG/PP REALIZADAS                0.                0.                0.                0.                0.
+    VALOR DEL SALDO FINAL           0.                0.                0.         13500543.         13500543.
+ 
+
+
+
+ COMPA¥IA  4 ASESORIA NUMERO 3           :
+ TOTAL DE VENTAS A CONSUMIDORES EN PERIODO 2. EN MILES DE UNIDADES 
+                                                   U.S.                           EC/EU                           BRAZIL     
+                                           CHIP             PC             CHIP             PC             CHIP             PC       
+ VENTAS TOTALES:   .    .    .    .          .00             .00             .00             .00             .00             .00
+
+ COMPA¥IA  4 ASESORIA NUMERO 28          : 
+ PRECIOS FIJADOS PARA EL PERIODO  2.          NOTA: LOS PRECIOS PODRIAN SER BORRADOS SI EL CAMBIO EN PRECIOS ES MENOR QUE EL MINIMO.
+                                                   U.S.                           EC/EU                           BRAZIL     
+                                           CHIP             PC             CHIP             PC             CHIP             PC       
+                                         STD.    DEL.    STD.    DEL.    STD.    DEL.    STD.    DEL.    STD.    DEL.    STD.    DEL.
+ COMPA¥IA  1  .    .    .    .    .        0.      0.      0.      0.      0.      0.      0.      0.      0.      0.      0.      0.
+ COMPA¥IA  2  .    .    .    .    .        0.      0.      0.      0.      0.      0.      0.      0.      0.      0.      0.      0.
+ COMPA¥IA  3  .    .    .    .    .        0.      0.      0.      0.      0.      0.      0.      0.      0.      0.      0.      0.
+ COMPA¥IA  4  .    .    .    .    .        0.      0.      0.      0.      0.      0.      0.      0.      0.      0.      0.      0.
+ COMPA¥IA  5  .    .    .    .    .        0.      0.      0.      0.      0.      0.      0.      0.      0.      0.      0.      0.
+ COMPA¥IA  6  .    .    .    .    .        0.      0.      0.      0.      0.      0.      0.      0.      0.      0.      0.      0.
+ COMPA¥IA  7  .    .    .    .    .        0.      0.      0.      0.      0.      0.      0.      0.      0.      0.      0.      0.
+ COMPA¥IA  8  .    .    .    .    .        0.      0.      0.      0.      0.      0.      0.      0.      0.      0.      0.      0.
+ COMPA¥IA  9  .    .    .    .    .        0.      0.      0.      0.      0.      0.      0.      0.      0.      0.      0.      0.
+ COMPA¥IA 10  .    .    .    .    .        0.      0.      0.      0.      0.      0.      0.      0.      0.      0.      0.      0.
+ COMPA¥IA 11  .    .    .    .    .        0.      0.      0.      0.      0.      0.      0.      0.      0.      0.      0.      0.
+
+ COMPA¥IA  4 ASESORIA NUMERO 17          : 
+ GRADO DE LAS VENTAS A CONSUMIDORES ESTE PERIODO.
+                                                   U.S.                           EC/EU                           BRAZIL     
+                                           CHIP             PC             CHIP             PC             CHIP             PC       
+                                         STD.    DEL.    STD.    DEL.    STD.    DEL.    STD.    DEL.    STD.    DEL.    STD.    DEL.
+ COMPA¥IA  1  .    .    .    .    .       -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.
+ COMPA¥IA  2  .    .    .    .    .       -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.
+ COMPA¥IA  3  .    .    .    .    .       -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.
+ COMPA¥IA  4  .    .    .    .    .       -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.
+ COMPA¥IA  5  .    .    .    .    .       -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.
+ COMPA¥IA  6  .    .    .    .    .       -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.
+ COMPA¥IA  7  .    .    .    .    .       -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.
+ COMPA¥IA  8  .    .    .    .    .       -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.
+ COMPA¥IA  9  .    .    .    .    .       -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.
+ COMPA¥IA 10  .    .    .    .    .       -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.
+ COMPA¥IA 11  .    .    .    .    .       -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.     -1.
+                               NOTA: -1 SIGNIFICA NO VENTAS, 0 SIGNIFICA QUE CERO ES EL GRADO VENDIDO
+
+
+
+ FORMULARIOS DE DECISION PARA LA COMPA¥IA NUMERO:  4.
+
+AREA PRODUCCION                             PLANTAS            GRADO -------PRODUCCION--------  GRADO -------PRODUCCION--------
+ FORM NUMERO BOR PER CIA AREA    PRODUCTO    NUEVAS  MEJ.MET.   INF. PLANTA 1 PLANTA 2 PLANTA 3  SUP. PLANTA 1 PLANTA 2 PLANTA 3
+
+  A2     13   N   2.  4.  2.       CHIP       1.        .00     0.     26.       0.       0.      0.     0.       0.       0.
+                                    PC        0.        .00     0.      0.       0.       0.      0.     0.       0.       0.
+AREA FINANZAS                  ---------TRANSFERENCIA DE CAJA---------   INV/
+ FORM NUMERO BOR PER CIA AREA   TIPO   MONEDA       MONTO  ¨CONVERSION?  PREST  MONTO   CONV
+
+  A3     22   N   2.  4.  2.     F        2.      1000.00      NO                 .00     N
+                                 F        2.       207.00      NO 
+CASA MATRIZ                  INVESTIGACION Y DESARROLLO          ------------------SERVICIOS DE ASESORIA--------------
+ FORM NUMERO BOR PER CIA        CHIP                  PC          SERV.ESPEC  ITEM.1 ITEM.2 ITEM.3 ITEM.4 ITEM.5 ITEM.6  DIVIDENDOS
+
+  H1     32   N   2.  4.      280.00                  .00                .00      0.     0.     0.     0.     0.     0.        .00
+CAMBIO DE MONEDA BCO. LOCAL    -------------------------------T R A N S A C C I O N E S---------------------------------
+ FORM NUMERO BOR PER CIA.  AREA TIPO MON.  MONTO  TIPO MON.  MONTO  TIPO MON.  MONTO  TIPO MON.  MONTO  TIPO MON.  MONTO
+
+  W3     61   N   2.   4.   H     B  2.  1000.00     B  2.   207.00       0.      .00       0.      .00       0.      .00
+
+
+ RESUMEN DE TRANSACCIONES ACTIVAS PARA EL FUTURO PARA LA COMPA¥IA NUMERO:   4.

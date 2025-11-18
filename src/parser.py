@@ -3,145 +3,128 @@ import re
 class LSTParser:
     def clean_content(self, content):
         """
-        Homogeneiza el contenido eliminando encabezados de página repetitivos
-        y normalizando espacios y saltos de línea.
+        Limpia el contenido eliminando encabezados repetitivos y normalizando texto.
         """
-        # 1. Eliminar los bloques de encabezado de página que rompen las tablas
+        # 1. Eliminar bloques de encabezado de página
         content = re.sub(r'1\s+THORELLI-GRAVES-LOPEZ[\s\S]*?PAGINA:\s+\d+', '', content)
-        
-        # 2. Eliminar líneas que solo contienen fechas o títulos irrelevantes sueltos
+        # 2. Eliminar títulos intermedios
         content = re.sub(r'INTOPIA 2000 --', '', content)
-        
-        # 3. Limpiar caracteres de control de impresora (ej. '0' al inicio de línea en tablas)
-        content = re.sub(r'\n0', '\n', content)
-        
+        # 3. Eliminar caracteres de control numéricos al inicio de línea
+        content = re.sub(r'\n\d', '\n', content)
         return content
 
     def parse_file(self, filepath):
         parsed_data = {}
         try:
-            with open(filepath, 'r', encoding='latin-1') as f:
+            with open(filepath, 'r', encoding='utf-8', errors='replace') as f:
                 raw_content = f.read()
         except Exception as e:
             print(f"Error al leer el archivo {filepath}: {e}")
             return {}
 
-        # --- PASO DE LIMPIEZA ---
         content = self.clean_content(raw_content)
 
-        # --- Bloque 1: BALANCE ---
-        match_caja_line = re.search(r'CAJA\s+([\d\.\s\-\,]+)', content)
-        if match_caja_line:
-            numeros = re.findall(r'(-?\d+)\.', match_caja_line.group(1))
-            parsed_data['caja_total'] = float(numeros[-1]) if numeros else 0.0
-        else:
-            parsed_data['caja_total'] = 0.0
+        # --- HELPER: Extraer último número de un bloque delimitado ---
+        def get_last_number_in_block(start_tag, end_tag, text):
+            # Busca todo el texto entre start_tag y end_tag
+            pattern = f"{start_tag}([\\s\\S]*?){end_tag}"
+            match = re.search(pattern, text)
+            if match:
+                block = match.group(1)
+                # Extrae todos los números (enteros o negativos) seguidos de punto
+                # Se usa [0-9\.\-]+ para capturar números que puedan estar cortados o con formato raro
+                numeros = re.findall(r'(-?\d+)\.', block)
+                if numeros:
+                    return float(numeros[-1]) # El último siempre es el consolidado
+            return 0.0
 
-        # --- Bloque 2: ESTADO DE RESULTADOS ---
-        match_utilidad = re.search(r'UTILIDAD DEL PERIODO\s+([\d\.\s\-\,]+)', content)
-        if match_utilidad:
-            numeros = re.findall(r'(-?\d+)\.', match_utilidad.group(1))
-            parsed_data['utilidad_periodo'] = float(numeros[-1]) if numeros else 0.0
-        else:
-            parsed_data['utilidad_periodo'] = 0.0
+        # --- 1. BALANCE (Caja) ---
+        # Busca desde "CAJA" hasta "CxC PERIODO" para capturar toda la fila(s)
+        parsed_data['caja_total'] = get_last_number_in_block(r'CAJA', r'CxC', content)
 
-        # --- Bloque 3: INFORMACION NO CONTABLE ---
+        # --- 2. ESTADO DE RESULTADOS (Beneficio) ---
+        # Busca desde "UTILIDAD DEL PERIODO" hasta "DIVIDENDOS" o "A UTILIDADES"
+        # Esto captura el salto de línea donde cae el valor consolidado en el periodo 5
+        parsed_data['utilidad_periodo'] = get_last_number_in_block(r'UTILIDAD\s+DEL\s+PERIODO', r'(?:DIVIDENDOS|A\s+UTILIDADES)', content)
+
+        # --- 3. INFORMACIÓN NO CONTABLE (Inventarios y Ventas) ---
         ventas_propias = {}
         inventarios_detalle = {}
         patentes_poseidas = {}
         
-        # Extraemos todo el bloque hasta que empiece otra sección grande
-        match_info_block = re.search(r'INFORMACION NO CONTABLE([\s\S]*?)(?:CANTIDAD DE PLANTAS|ANALISIS DE COSTO DE PRODUCCION)', content)
-        
-        if match_info_block:
-            info_block = match_info_block.group(1)
+        match_info = re.search(r'INFORMACION NO CONTABLE([\s\S]*?)CANTIDAD DE PLANTAS', content)
+        if match_info:
+            info_block = match_info.group(1)
             
-            # Función auxiliar para extraer 6 valores consecutivos (que pueden estar en varias líneas)
-            def get_six_values(regex_pattern, text):
-                match = re.search(regex_pattern, text)
+            def get_six_cols(pattern, text):
+                match = re.search(pattern, text)
                 if match:
-                    # Capturamos todo el bloque de números encontrado
                     full_match = match.group(0)
-                    # Extraemos todos los números que terminan en punto
                     vals = re.findall(r'(\d+)\.', full_match)
-                    # Tomamos los últimos 6 (que corresponden a las columnas US(X,Y), EU(X,Y), BR(X,Y))
                     if len(vals) >= 6:
                         return list(map(int, vals[-6:]))
                 return [0]*6
 
-            # MAPEO DE COLUMNAS: US(X,Y), EU(X,Y), BR(X,Y)
-            cols_std = [('US', 'X', 0), ('US', 'Y', 0), ('EU', 'X', 0), ('EU', 'Y', 0), ('BR', 'X', 0), ('BR', 'Y', 0)]
-            cols_lujo = [('US', 'X', 1), ('US', 'Y', 1), ('EU', 'X', 1), ('EU', 'Y', 1), ('BR', 'X', 1), ('BR', 'Y', 1)]
+            keys_std = [('US','X',0), ('US','Y',0), ('EU','X',0), ('EU','Y',0), ('BR','X',0), ('BR','Y',0)]
+            keys_lujo = [('US','X',1), ('US','Y',1), ('EU','X',1), ('EU','Y',1), ('BR','X',1), ('BR','Y',1)]
 
-            # 1. Ventas Propias (Usamos \s+ para tolerar saltos de línea entre palabras)
-            # El patrón busca la etiqueta y luego captura cualquier cosa hasta encontrar 6 patrones de números
-            vals_std = get_six_values(r'VENTAS\s+UNIDADES\s+ESTANDAR[\s\S]*?A\s+CONSUMIDORES[\s\S]*?(\d+\.[\s\S]*?){6}', info_block)
-            for i, val in enumerate(vals_std):
-                if val > 0: ventas_propias[cols_std[i]] = val
+            v_std = get_six_cols(r'VENTAS\s+UNIDADES\s+ESTANDAR[\s\S]*?A\s+CONSUMIDORES[\s\S]*?(\d+\.[\s\S]*?){6}', info_block)
+            v_luj = get_six_cols(r'VENTA\s+UNIDADES\s+DE\s+LUJO[\s\S]*?A\s+CONSUMIDORES[\s\S]*?(\d+\.[\s\S]*?){6}', info_block)
+            i_std = get_six_cols(r'INVENTARIO\s+FINAL[\s\S]*?UNIDADES\s+ESTANDAR[\s\S]*?(\d+\.[\s\S]*?){6}', info_block)
+            i_luj = get_six_cols(r'INVENTARIO\s+FINAL[\s\S]*?UNIDADES\s+DE\s+LUJO[\s\S]*?(\d+\.[\s\S]*?){6}', info_block)
 
-            vals_lujo = get_six_values(r'VENTA\s+UNIDADES\s+DE\s+LUJO[\s\S]*?A\s+CONSUMIDORES[\s\S]*?(\d+\.[\s\S]*?){6}', info_block)
-            for i, val in enumerate(vals_lujo):
-                if val > 0: ventas_propias[cols_lujo[i]] = val
-            
-            parsed_data['ventas_propias'] = ventas_propias
+            for i in range(6):
+                if v_std[i] > 0: ventas_propias[keys_std[i]] = v_std[i]
+                if v_luj[i] > 0: ventas_propias[keys_lujo[i]] = v_luj[i]
+                if i_std[i] > 0: inventarios_detalle[keys_std[i]] = i_std[i]
+                if i_luj[i] > 0: inventarios_detalle[keys_lujo[i]] = i_luj[i]
 
-            # 2. Inventarios (CORREGIDO: Regex independiente y flexible)
-            # Buscamos 'UNIDADES ESTANDAR' dentro del bloque, sin depender de 'INVENTARIO FINAL' pegado
-            vals_inv_std = get_six_values(r'INVENTARIO\s+FINAL[\s\S]*?UNIDADES\s+ESTANDAR[\s\S]*?(\d+\.[\s\S]*?){6}', info_block)
-            for i, val in enumerate(vals_inv_std):
-                if val > 0: inventarios_detalle[cols_std[i]] = val
+        parsed_data['ventas_propias'] = ventas_propias
+        parsed_data['inventarios_detalle'] = inventarios_detalle
 
-            # Buscamos 'UNIDADES DE LUJO' permitiendo saltos de línea (\s+) y texto intermedio desde 'INVENTARIO FINAL'
-            # Nota: [\s\S]*? permite saltar la sección de Estándar que está en medio
-            vals_inv_lujo = get_six_values(r'INVENTARIO\s+FINAL[\s\S]*?UNIDADES\s+DE\s+LUJO[\s\S]*?(\d+\.[\s\S]*?){6}', info_block)
-            for i, val in enumerate(vals_inv_lujo):
-                if val > 0: inventarios_detalle[cols_lujo[i]] = val
-            
-            parsed_data['inventarios_detalle'] = inventarios_detalle
+        # --- 4. PATENTES ---
+        match_pat = re.search(r'MAXIMO\s+GRADO\s+POSEIDO[\s\S]*?(\d+\.[\s\S]*?){6}', content)
+        if match_pat:
+            p_vals = re.findall(r'(\d+)\.', match_pat.group(0))
+            if len(p_vals) >= 6:
+                g = list(map(int, p_vals[-6:]))
+                patentes_poseidas = {
+                    ('US','X'): g[0], ('US','Y'): g[1],
+                    ('EU','X'): g[2], ('EU','Y'): g[3],
+                    ('BR','X'): g[4], ('BR','Y'): g[5]
+                }
+        parsed_data['patentes_poseidas'] = patentes_poseidas
 
-            # 3. Patentes
-            # Buscamos en todo el contenido limpio por si se salió del bloque
-            match_patentes = re.search(r'MAXIMO\s+GRADO\s+POSEIDO[\s\S]*?(\d+\.[\s\S]*?){6}', content)
-            if match_patentes:
-                vals = re.findall(r'(\d+)\.', match_patentes.group(0))
-                if len(vals) >= 6:
-                    g = list(map(int, vals[-6:]))
-                    patentes_poseidas[('US', 'X')] = g[0]
-                    patentes_poseidas[('US', 'Y')] = g[1]
-                    patentes_poseidas[('EU', 'X')] = g[2]
-                    patentes_poseidas[('EU', 'Y')] = g[3]
-                    patentes_poseidas[('BR', 'X')] = g[4]
-                    patentes_poseidas[('BR', 'Y')] = g[5]
-            
-            parsed_data['patentes_poseidas'] = patentes_poseidas
-
-        # --- Bloque 4: CUOTA DE MERCADO (Asesoría 3) ---
-        match_ventas_block = re.search(r'ASESORIA NUMERO 3[\s\S]*?VENTAS TOTALES:([\s\S]*?)COMPA', content)
-        if match_ventas_block:
-            numeros_raw = match_ventas_block.group(1)
-            match_ventas = re.findall(r'(\d*\.\d{2})', numeros_raw)
-            if match_ventas and len(match_ventas) >= 6:
-                vals = [float(v) for v in match_ventas[-6:]]
+        # --- 5. CUOTA DE MERCADO (Asesoría 3) ---
+        # Buscamos el bloque entre "VENTAS TOTALES:" y "ASESORIA NUMERO 28" (o "COMPAÑIA")
+        match_cuota = re.search(r'ASESORIA\s+NUMERO\s+3[\s\S]*?VENTAS\s+TOTALES:([\s\S]*?)(?:COMPA|ASESORIA)', content)
+        if match_cuota:
+            numeros_raw = match_cuota.group(1)
+            # Busca números formato 00.00 (permitiendo espacios entre dígitos si el OCR falló, aunque aquí no es el caso)
+            # En los LST el formato es .00 o 12.34
+            cuotas = re.findall(r'(\d*\.\d{2})', numeros_raw)
+            if len(cuotas) >= 6:
+                # Tomamos los últimos 6 encontrados en ese bloque
+                vals = [float(c) for c in cuotas[-6:]]
                 parsed_data['cuota_mercado'] = sum(vals)
-                parsed_data['mercado_ventas_totales'] = [v * 1000 for v in vals]
+                parsed_data['mercado_ventas_totales'] = [v*1000 for v in vals]
             else:
                 parsed_data['cuota_mercado'] = 0
-                parsed_data['mercado_ventas_totales'] = [0]*6
+        else:
+            parsed_data['cuota_mercado'] = 0
         
-        # --- Bloque 5: PRECIOS DE MERCADO (Asesoría 28) ---
+        # --- 6. PRECIOS DE MERCADO (Asesoría 28) ---
         mercado_precios = {}
-        match_precios_block = re.search(r'ASESORIA NUMERO 28([\s\S]*?)(?:ASESORIA NUMERO 17|GRADO DE LAS VENTAS)', content)
-        if match_precios_block:
-            precios_content = match_precios_block.group(1)
-            lineas_cias = re.finditer(r'(COMPA[NÑ¥]IA\s+\d+)([\s\S]*?)(?=COMPA[NÑ¥]IA|$)', precios_content)
-            for match in lineas_cias:
-                nombre_cia = match.group(1).replace('¥', 'Ñ').strip()
-                datos_cia = match.group(2)
-                precios_encontrados = re.findall(r'\s+(\d+)\.', datos_cia)
-                if len(precios_encontrados) >= 12:
-                    precios_num = [float(p) for p in precios_encontrados[:12]]
-                    mercado_precios[nombre_cia] = precios_num
-
+        # Buscamos hasta el siguiente titulo de Asesoría o fin de bloque
+        match_precios = re.search(r'ASESORIA\s+NUMERO\s+28([\s\S]*?)(?:ASESORIA\s+NUMERO\s+17|GRADO\s+DE\s+LAS\s+VENTAS)', content)
+        if match_precios:
+            bloque_precios = match_precios.group(1)
+            for m in re.finditer(r'(COMPA[NÑ¥]IA\s+\d+)([\s\S]*?)(?=COMPA[NÑ¥]IA|$)', bloque_precios):
+                nombre = m.group(1).replace('¥','Ñ').strip()
+                precios = re.findall(r'\s+(\d+)\.', m.group(2))
+                if len(precios) >= 12:
+                    mercado_precios[nombre] = [float(p) for p in precios[:12]]
+        
         parsed_data['mercado_precios'] = mercado_precios
         
         return parsed_data
